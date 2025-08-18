@@ -84,7 +84,7 @@ export default function LoginPage() {
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
-                                예시: 122400298 (관리자), 120700243 (일반 사용자)
+
                             </p>
                         </div>
 
@@ -119,20 +119,11 @@ export default function LoginPage() {
                         <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                             <div>
                                 <p className="font-medium text-blue-600 mb-1">관리자</p>
-                                <p>122400298</p>
-                                <p>121800140</p>
-                                <p>121800077</p>
+
                             </div>
                             <div>
                                 <p className="font-medium text-green-600 mb-1">일반 사용자</p>
-                                <p>120700243</p>
-                                <p>121500029</p>
-                                <p>121500065</p>
-                                <p>121600025</p>
-                                <p>121600245</p>
-                                <p>121600276</p>
-                                <p>121700072</p>
-                                <p>121900074</p>
+
                             </div>
                         </div>
                     </div>
