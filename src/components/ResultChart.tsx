@@ -1,14 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AnalysisResult, AnalysisCategory } from '@/lib/types';
-import { BarChart3, TrendingUp } from 'lucide-react';
+import { BarChart3, TrendingUp, RefreshCw } from 'lucide-react';
 
 interface ResultChartProps {
     data: AnalysisResult[];
     category: AnalysisCategory;
+    isLoading?: boolean;
+    lastUpdated?: string;
 }
 
 interface CustomTooltipProps {
@@ -73,36 +75,171 @@ const NotImplementedTooltip = React.memo(function NotImplementedTooltip({ active
     return null;
 });
 
-const ResultChart = React.memo(function ResultChart({ data, category }: ResultChartProps) {
+// 애니메이션 숫자 컴포넌트
+const AnimatedNumber = React.memo(function AnimatedNumber({
+    value,
+    className = "",
+    duration = 1000
+}: {
+    value: number;
+    className?: string;
+    duration?: number;
+}) {
+    const [displayValue, setDisplayValue] = useState(value);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    useEffect(() => {
+        if (displayValue !== value) {
+            setIsAnimating(true);
+            const startValue = displayValue;
+            const endValue = value;
+            const startTime = Date.now();
+
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // 이징 함수 (부드러운 시작과 끝)
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = Math.round(startValue + (endValue - startValue) * easeOutQuart);
+
+                setDisplayValue(currentValue);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    setIsAnimating(false);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        }
+    }, [value, displayValue, duration]);
+
+    return (
+        <span className={`${className} ${isAnimating ? 'text-blue-600' : ''}`}>
+            {displayValue.toLocaleString()}
+        </span>
+    );
+});
+
+// 애니메이션 퍼센트 컴포넌트
+const AnimatedPercentage = React.memo(function AnimatedPercentage({
+    value,
+    className = "",
+    duration = 1000
+}: {
+    value: number;
+    className?: string;
+    duration?: number;
+}) {
+    const [displayValue, setDisplayValue] = useState(value);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    useEffect(() => {
+        if (Math.abs(displayValue - value) > 0.1) {
+            setIsAnimating(true);
+            const startValue = displayValue;
+            const endValue = value;
+            const startTime = Date.now();
+
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // 이징 함수 (부드러운 시작과 끝)
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = startValue + (endValue - startValue) * easeOutQuart;
+
+                setDisplayValue(currentValue);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    setIsAnimating(false);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        }
+    }, [value, displayValue, duration]);
+
+    return (
+        <span className={`${className} ${isAnimating ? 'text-blue-600' : ''}`}>
+            {displayValue.toFixed(1)}%
+        </span>
+    );
+});
+
+const ResultChart = React.memo(function ResultChart({
+    data,
+    category,
+    isLoading = false,
+    lastUpdated
+}: ResultChartProps) {
     const isNotImplemented = category === '미실시자현황';
 
-    // 차트 데이터 준비
-    const chartData = data.map(item => {
-        if (isNotImplemented) {
-            return {
-                name: item.name,
-                미실시: item.notImplemented,
-                미실시율: item.agreementRate
-            };
-        } else {
-            return {
-                name: item.name,
-                동의: item.agreed,
-                비동의: item.disagreed,
-                동의율: item.agreementRate
-            };
-        }
-    });
+    // 차트 데이터 준비 (메모이제이션으로 성능 최적화)
+    const chartData = useMemo(() => {
+        return data.map(item => {
+            if (isNotImplemented) {
+                return {
+                    name: item.name,
+                    미실시: item.notImplemented,
+                    미실시율: item.agreementRate
+                };
+            } else {
+                return {
+                    name: item.name,
+                    동의: item.agreed,
+                    비동의: item.disagreed,
+                    동의율: item.agreementRate
+                };
+            }
+        });
+    }, [data, isNotImplemented]);
+
+    // 로딩 스켈레톤 컴포넌트
+    const LoadingSkeleton = () => (
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+            <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="h-80 bg-gray-100 rounded-lg animate-pulse mb-4"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    if (isLoading) {
+        return <LoadingSkeleton />;
+    }
 
     return (
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
             <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-3 text-xl font-bold text-gray-900">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600">
-                        <TrendingUp className="h-5 w-5 text-white" />
-                    </div>
-                    {category} 분석 결과
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-3 text-xl font-bold text-gray-900">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600">
+                            <TrendingUp className="h-5 w-5 text-white" />
+                        </div>
+                        {category} 분석 결과
+                    </CardTitle>
+                    {lastUpdated && (
+                        <div className="flex items-center text-xs text-gray-500">
+                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                            <span>실시간 업데이트 중</span>
+                        </div>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 <div className="h-80">
@@ -178,7 +315,7 @@ const ResultChart = React.memo(function ResultChart({ data, category }: ResultCh
                                     <span className="font-semibold text-gray-700 text-sm">총 미실시</span>
                                 </div>
                                 <div className="text-xl font-bold text-gray-600">
-                                    {data.reduce((sum, item) => sum + item.notImplemented, 0)}명
+                                    <AnimatedNumber value={data.reduce((sum, item) => sum + item.notImplemented, 0)} />명
                                 </div>
                             </div>
                             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg border border-blue-200">
@@ -187,7 +324,7 @@ const ResultChart = React.memo(function ResultChart({ data, category }: ResultCh
                                     <span className="font-semibold text-blue-700 text-sm">총 인원</span>
                                 </div>
                                 <div className="text-xl font-bold text-blue-600">
-                                    {data.reduce((sum, item) => sum + item.total, 0)}명
+                                    <AnimatedNumber value={data.reduce((sum, item) => sum + item.total, 0)} />명
                                 </div>
                             </div>
                             <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-3 rounded-lg border border-purple-200">
@@ -196,7 +333,9 @@ const ResultChart = React.memo(function ResultChart({ data, category }: ResultCh
                                     <span className="font-semibold text-purple-700 text-sm">평균 미실시율</span>
                                 </div>
                                 <div className="text-xl font-bold text-purple-600">
-                                    {data.length > 0 ? Math.round(data.reduce((sum, item) => sum + item.agreementRate, 0) / data.length * 10) / 10 : 0}%
+                                    <AnimatedPercentage
+                                        value={data.length > 0 ? Math.round(data.reduce((sum, item) => sum + item.agreementRate, 0) / data.length * 10) / 10 : 0}
+                                    />
                                 </div>
                             </div>
                         </>
@@ -208,7 +347,7 @@ const ResultChart = React.memo(function ResultChart({ data, category }: ResultCh
                                     <span className="font-semibold text-green-700 text-sm">총 동의</span>
                                 </div>
                                 <div className="text-xl font-bold text-green-600">
-                                    {data.reduce((sum, item) => sum + item.agreed, 0)}명
+                                    <AnimatedNumber value={data.reduce((sum, item) => sum + item.agreed, 0)} />명
                                 </div>
                             </div>
 
@@ -218,7 +357,7 @@ const ResultChart = React.memo(function ResultChart({ data, category }: ResultCh
                                     <span className="font-semibold text-red-700 text-sm">총 비동의</span>
                                 </div>
                                 <div className="text-xl font-bold text-red-600">
-                                    {data.reduce((sum, item) => sum + item.disagreed, 0)}명
+                                    <AnimatedNumber value={data.reduce((sum, item) => sum + item.disagreed, 0)} />명
                                 </div>
                             </div>
 
@@ -228,7 +367,9 @@ const ResultChart = React.memo(function ResultChart({ data, category }: ResultCh
                                     <span className="font-semibold text-blue-700 text-sm">평균 동의율</span>
                                 </div>
                                 <div className="text-xl font-bold text-blue-600">
-                                    {data.length > 0 ? Math.round(data.reduce((sum, item) => sum + item.agreementRate, 0) / data.length * 10) / 10 : 0}%
+                                    <AnimatedPercentage
+                                        value={data.length > 0 ? Math.round(data.reduce((sum, item) => sum + item.agreementRate, 0) / data.length * 10) / 10 : 0}
+                                    />
                                 </div>
                             </div>
                         </>

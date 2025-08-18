@@ -504,3 +504,45 @@ export function getNotImplementedEmployees(employees: Employee[]): Employee[] {
         .filter(emp => emp.isImplemented === 'N')
         .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+/**
+ * Supabase에 파일 업로드 함수
+ */
+export async function uploadToSupabase(
+    employees: Employee[],
+    fileName: string,
+    baseDate: string,
+    baseTime: string
+): Promise<{ success: boolean; error?: string; uploadBatchId?: string }> {
+    try {
+        const response = await fetch('/api/upload-batch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                employees,
+                fileName,
+                baseDate,
+                baseTime,
+            }),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || '업로드 중 오류가 발생했습니다.')
+        }
+
+        const result = await response.json()
+        return {
+            success: true,
+            uploadBatchId: result.uploadBatchId,
+        }
+    } catch (error) {
+        console.error('Upload to Supabase error:', error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+        }
+    }
+}
