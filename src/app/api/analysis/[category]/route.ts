@@ -20,7 +20,7 @@ interface AnalysisResult {
 
 function getSelectColumnsForCategory(category: string): string {
   const baseColumns = 'agreement_status, is_implemented'
-  
+
   switch (category) {
     case '전체기준':
       return baseColumns
@@ -35,18 +35,25 @@ function getSelectColumnsForCategory(category: string): string {
   }
 }
 
+function getEmptyResult(category: string): AnalysisResult[] {
+  if (category === '전체기준') {
+    return [{ name: '전체', agreed: 0, disagreed: 0, notImplemented: 0, total: 0 }]
+  }
+  return []
+}
+
 function analyzeByCategory(employees: EmployeeData[]): AnalysisResult[] {
   const categoryMap = new Map<string, { agreed: number; disagreed: number; notImplemented: number }>()
-  
+
   employees.forEach(employee => {
     const category = employee.category || '미분류'
-    
+
     if (!categoryMap.has(category)) {
       categoryMap.set(category, { agreed: 0, disagreed: 0, notImplemented: 0 })
     }
-    
+
     const stats = categoryMap.get(category)!
-    
+
     if (!employee.is_implemented) {
       stats.notImplemented++
     } else if (employee.agreement_status === '동의') {
@@ -55,7 +62,7 @@ function analyzeByCategory(employees: EmployeeData[]): AnalysisResult[] {
       stats.disagreed++
     }
   })
-  
+
   return Array.from(categoryMap.entries()).map(([name, stats]) => ({
     name,
     agreed: stats.agreed,
@@ -67,16 +74,16 @@ function analyzeByCategory(employees: EmployeeData[]): AnalysisResult[] {
 
 function analyzeByMajorOrg(employees: EmployeeData[]): AnalysisResult[] {
   const orgMap = new Map<string, { agreed: number; disagreed: number; notImplemented: number }>()
-  
+
   employees.forEach(employee => {
     const org = employee.major_org || '미분류'
-    
+
     if (!orgMap.has(org)) {
       orgMap.set(org, { agreed: 0, disagreed: 0, notImplemented: 0 })
     }
-    
+
     const stats = orgMap.get(org)!
-    
+
     if (!employee.is_implemented) {
       stats.notImplemented++
     } else if (employee.agreement_status === '동의') {
@@ -85,7 +92,7 @@ function analyzeByMajorOrg(employees: EmployeeData[]): AnalysisResult[] {
       stats.disagreed++
     }
   })
-  
+
   return Array.from(orgMap.entries()).map(([name, stats]) => ({
     name,
     agreed: stats.agreed,
@@ -97,16 +104,16 @@ function analyzeByMajorOrg(employees: EmployeeData[]): AnalysisResult[] {
 
 function analyzeByGrade(employees: EmployeeData[]): AnalysisResult[] {
   const gradeMap = new Map<string, { agreed: number; disagreed: number; notImplemented: number }>()
-  
+
   employees.forEach(employee => {
     const grade = employee.grade || '미분류'
-    
+
     if (!gradeMap.has(grade)) {
       gradeMap.set(grade, { agreed: 0, disagreed: 0, notImplemented: 0 })
     }
-    
+
     const stats = gradeMap.get(grade)!
-    
+
     if (!employee.is_implemented) {
       stats.notImplemented++
     } else if (employee.agreement_status === '동의') {
@@ -115,7 +122,7 @@ function analyzeByGrade(employees: EmployeeData[]): AnalysisResult[] {
       stats.disagreed++
     }
   })
-  
+
   return Array.from(gradeMap.entries()).map(([name, stats]) => ({
     name,
     agreed: stats.agreed,
@@ -127,7 +134,7 @@ function analyzeByGrade(employees: EmployeeData[]): AnalysisResult[] {
 
 function analyzeOverall(employees: EmployeeData[]): AnalysisResult[] {
   const stats = { agreed: 0, disagreed: 0, notImplemented: 0 }
-  
+
   employees.forEach(employee => {
     if (!employee.is_implemented) {
       stats.notImplemented++
@@ -137,7 +144,7 @@ function analyzeOverall(employees: EmployeeData[]): AnalysisResult[] {
       stats.disagreed++
     }
   })
-  
+
   return [{
     name: '전체',
     agreed: stats.agreed,
@@ -148,14 +155,14 @@ function analyzeOverall(employees: EmployeeData[]): AnalysisResult[] {
 }
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ category: string }> }
+  _request: NextRequest,
+  { params }: { params: { category: string } }
 ) {
   try {
-    const { category } = await params
-    
+    const { category } = params
+
     if (!category) {
-      return NextResponse.json({ error: '카테고리가 필요합니다.' }, { status: 400 })
+      return NextResponse.json(getEmptyResult('전체기준'))
     }
 
     // 최신 업로드 배치 ID 조회
@@ -167,12 +174,12 @@ export async function GET(
       .single()
 
     if (batchError || !latestBatch) {
-      return NextResponse.json({ error: '업로드된 데이터가 없습니다.' }, { status: 404 })
+      return NextResponse.json(getEmptyResult(category))
     }
 
     // 해당 카테고리에 필요한 컬럼만 선택
     const selectColumns = getSelectColumnsForCategory(category)
-    
+
     const { data: employees, error: employeesError } = await supabase
       .from('employees')
       .select(selectColumns)
@@ -180,16 +187,16 @@ export async function GET(
 
     if (employeesError) {
       console.error('Employees fetch error:', employeesError)
-      return NextResponse.json({ error: '데이터 조회 중 오류가 발생했습니다.' }, { status: 500 })
+      return NextResponse.json(getEmptyResult(category))
     }
 
     if (!employees || employees.length === 0) {
-      return NextResponse.json({ error: '분석할 데이터가 없습니다.' }, { status: 404 })
+      return NextResponse.json(getEmptyResult(category))
     }
 
     // 카테고리별 분석 수행
     let analysisResult: AnalysisResult[]
-    
+
     switch (category) {
       case '카테고리별':
         analysisResult = analyzeByCategory(employees as unknown as EmployeeData[])
@@ -210,6 +217,6 @@ export async function GET(
 
   } catch (error) {
     console.error('Analysis API error:', error)
-    return NextResponse.json({ error: '분석 중 오류가 발생했습니다.' }, { status: 500 })
+    return NextResponse.json(getEmptyResult('전체기준'))
   }
 }

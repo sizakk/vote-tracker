@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,8 +18,6 @@ export default function LoginPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!employeeId.trim()) return
-
         setIsLoading(true)
         setError('')
 
@@ -41,15 +39,6 @@ export default function LoginPage() {
             setIsLoading(false)
         }
     }
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // 숫자만 허용
-        const value = e.target.value.replace(/\D/g, '')
-        setEmployeeId(value)
-    }
-
-    const adminIds = ['122400298', '121800140', '121800077']
-    const userIds = ['120700243', '121500029', '121500065', '121600245', '121600276', '121700072', '121900074']
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
@@ -86,17 +75,15 @@ export default function LoginPage() {
                                 <Input
                                     id="employeeId"
                                     type="text"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
                                     value={employeeId}
-                                    onChange={handleChange}
-                                    placeholder="사번(숫자만)을 입력하세요"
+                                    onChange={(e) => setEmployeeId(e.target.value.replace(/\D/g, ''))}
+                                    placeholder="사번을 입력하세요"
                                     className="pl-10 h-12 text-lg"
                                     required
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
-                                관리자 로그인 시 헤더에 파일 업로드 버튼이 노출됩니다.
+                                사번은 숫자만 입력해주세요.
                             </p>
                         </div>
 
@@ -109,7 +96,7 @@ export default function LoginPage() {
 
                         <Button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || employeeId.trim().length === 0}
                             className="w-full h-12 text-lg font-medium bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                         >
                             {isLoading ? (
@@ -125,28 +112,6 @@ export default function LoginPage() {
                             )}
                         </Button>
                     </form>
-
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                        <h3 className="text-sm font-medium text-gray-900 mb-3">사용 가능한 사번</h3>
-                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                            <div>
-                                <p className="font-medium text-blue-600 mb-1">관리자</p>
-                                <div className="flex flex-wrap gap-1">
-                                    {adminIds.map(id => (
-                                        <span key={id} className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-200">{id}</span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <p className="font-medium text-green-600 mb-1">일반 사용자</p>
-                                <div className="flex flex-wrap gap-1">
-                                    {userIds.map(id => (
-                                        <span key={id} className="px-2 py-1 bg-green-50 text-green-700 rounded-md border border-green-200">{id}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
         </div>
