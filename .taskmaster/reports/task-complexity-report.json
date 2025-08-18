@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "generatedAt": "2025-08-16T15:24:54.760Z",
+    "tasksAnalyzed": 10,
+    "totalTasks": 10,
+    "analysisCount": 10,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": false
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Next.js 프로젝트 설정 및 기본 구조 구축",
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand task 'Next.js 프로젝트 설정 및 기본 구조 구축' into subtasks covering: 1) Next.js 및 TypeScript 초기 설정, 2) TailwindCSS 및 ShadCN 설치 및 구성, 3) 기본 파일 구조 및 폴더 생성, 4) 반응형 레이아웃 구현. Include specific commands, configuration details, and acceptance criteria for each subtask.",
+      "reasoning": "This task involves setting up the project foundation with multiple technologies (Next.js, TypeScript, TailwindCSS, ShadCN). While the task has detailed steps, it requires moderate technical knowledge and configuration of multiple packages. The complexity comes from ensuring all technologies work together correctly and establishing a proper project structure."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "파일 업로드 컴포넌트 구현",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand task '파일 업로드 컴포넌트 구현' into subtasks covering: 1) 드래그 앤 드롭 영역 UI 구현, 2) 파일 유효성 검사 및 이벤트 핸들러 구현, 3) 업로드 상태 표시 및 에러 처리 기능 구현. For each subtask, include component structure, specific event handlers, and test cases.",
+      "reasoning": "This component requires implementing drag-and-drop functionality, file validation, and state management for upload status. The provided code is substantial and includes event handlers for multiple interactions. The complexity comes from handling various user interactions and edge cases for file uploads."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Excel 파일 파싱 유틸리티 구현",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand task 'Excel 파일 파싱 유틸리티 구현' into subtasks covering: 1) SheetJS 통합 및 기본 파일 읽기 기능 구현, 2) Employee 인터페이스 정의 및 데이터 매핑 로직 구현, 3) 데이터 유효성 검사 및 예외 처리 구현, 4) 대용량 Excel 파일 처리 최적화. Include specific validation rules, error handling strategies, and performance considerations for each subtask.",
+      "reasoning": "This task involves complex data processing with SheetJS, requiring type mapping, validation, and error handling. The utility needs to handle various Excel formats and potential data inconsistencies. The complexity is increased by the need to process potentially large datasets efficiently and handle various edge cases in Excel data."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "데이터 분석 유틸리티 구현",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand task '데이터 분석 유틸리티 구현' into subtasks covering: 1) KPI 계산 함수 구현, 2) 대조직/Grade/직책별 분석 함수 구현, 3) 나이/근속년수/성별별 분석 함수 구현, 4) 비동의자 목록 필터링 기능 구현, 5) 차트 데이터 변환 및 포맷팅 유틸리티 구현. For each subtask, include specific algorithms, data transformation logic, and test scenarios with sample data.",
+      "reasoning": "This task requires implementing complex data analysis algorithms across 9 different categories. It involves statistical calculations, data grouping, filtering, and transformation for visualization. The complexity is high due to the variety of analysis types, potential edge cases in data, and the need for accurate calculations across different dimensions."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "KPI 카드 컴포넌트 구현",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand task 'KPI 카드 컴포넌트 구현' into subtasks covering: 1) KPI 카드 UI 레이아웃 및 스타일링 구현, 2) Recharts를 활용한 원형 차트 구현, 3) 반응형 디자인 및 데이터 바인딩 구현. Include component props interface, styling details, and responsive breakpoints for each subtask.",
+      "reasoning": "This component involves creating visualizations with Recharts and implementing responsive layouts. While the task includes detailed code, the complexity comes from properly implementing the pie charts, handling the data transformations for visualization, and ensuring the component works across different screen sizes."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "분석 버튼 컴포넌트 구현",
+      "complexityScore": 4,
+      "recommendedSubtasks": 2,
+      "expansionPrompt": "Expand task '분석 버튼 컴포넌트 구현' into subtasks covering: 1) 9개 분석 카테고리 버튼 UI 및 상태 관리 구현, 2) 반응형 그리드 레이아웃 및 버튼 선택 상태 시각화 구현. Include component structure, state management approach, and responsive grid specifications for each subtask.",
+      "reasoning": "This is a relatively straightforward UI component that displays a grid of buttons with selection state. The complexity is moderate, involving state management for selected buttons and implementing a responsive grid layout. The component itself doesn't contain complex logic but needs to handle user interactions and visual feedback."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "결과 차트 컴포넌트 구현",
+      "complexityScore": 6,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand task '결과 차트 컴포넌트 구현' into subtasks covering: 1) Recharts 기반 막대 차트 UI 구현, 2) 커스텀 툴팁 및 차트 레이블 구현, 3) 동적 데이터 바인딩 및 반응형 차트 레이아웃 구현. Include chart configuration options, tooltip design, and responsive behavior specifications for each subtask.",
+      "reasoning": "This component requires implementing complex visualizations with Recharts, including custom tooltips and dynamic data binding. The complexity comes from configuring the chart correctly, implementing custom tooltips, handling various data scenarios, and ensuring the chart is responsive across different screen sizes."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "비동의자 목록 컴포넌트 구현",
+      "complexityScore": 5,
+      "recommendedSubtasks": 3,
+      "expansionPrompt": "Expand task '비동의자 목록 컴포넌트 구현' into subtasks covering: 1) ShadCN 테이블 컴포넌트 구현 및 데이터 바인딩, 2) 페이지네이션 기능 구현, 3) 반응형 테이블 레이아웃 및 엣지 케이스 처리 구현. Include pagination logic, responsive design approach, and empty state handling for each subtask.",
+      "reasoning": "This component involves creating a data table with pagination functionality. The complexity is moderate, requiring implementation of table rendering, pagination logic, and responsive design. The component needs to handle various data states including empty lists and different screen sizes."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "메인 페이지 통합 구현",
+      "complexityScore": 8,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand task '메인 페이지 통합 구현' into subtasks covering: 1) 상태 관리 및 데이터 흐름 설계, 2) 파일 업로드 및 데이터 처리 로직 통합, 3) 분석 카테고리 선택 및 결과 표시 로직 구현, 4) 오류 처리 및 로딩 상태 관리 구현, 5) 컴포넌트 간 데이터 전달 및 이벤트 핸들링 구현. Include state management approach, component interaction diagrams, and error handling strategies for each subtask.",
+      "reasoning": "This task involves integrating all previously built components and implementing the main application logic. The complexity is high due to the need to manage multiple states, handle data flow between components, implement error handling, and ensure all components work together correctly. It requires coordinating the entire application workflow from file upload to data visualization."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "최종 테스트 및 최적화",
+      "complexityScore": 7,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand task '최종 테스트 및 최적화' into subtasks covering: 1) 크로스 브라우저 및 디바이스 호환성 테스트, 2) 성능 최적화 (React.memo, useMemo, useCallback 적용), 3) 접근성 개선 및 ARIA 속성 추가, 4) 대용량 데이터 처리 최적화 및 최종 빌드 준비. Include testing methodologies, performance metrics, accessibility standards, and optimization techniques for each subtask.",
+      "reasoning": "This task involves comprehensive testing and optimization across multiple dimensions. The complexity is high due to the breadth of testing required (cross-browser, performance, accessibility) and the various optimization techniques to be applied. It requires deep knowledge of React optimization patterns, accessibility standards, and performance tuning for large datasets."
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+# Task ID: 3
+# Title: Excel 파일 파싱 유틸리티 구현
+# Status: pending
+# Dependencies: 1, 2
+# Priority: high
+# Description: SheetJS를 사용하여 업로드된 Excel 파일을 파싱하고 Employee 인터페이스에 맞는 JSON 데이터로 변환합니다.
+# Details:
+1. SheetJS 설치: `npm install xlsx`
+2. excel-parser.ts 유틸리티 파일 생성
+3. Employee 인터페이스 정의
+4. Excel 파일 읽기 및 파싱 함수 구현
+5. 19개 고정 열 구조에 맞게 데이터 매핑
+6. 데이터 유효성 검사 및 오류 처리
+
+```typescript
+// src/lib/types.ts
+export interface Employee {
+  employeeId: string;    // 사번
+  name: string;          // 성명
+  majorOrg: string;      // 대조직
+  organization: string;  // 조직
+  grade: string;         // Grade
+  gradeYear: number;     // Grade년차
+  position: string;      // 직책
+  hiringType: string;    // 입사구분
+  gender: string;        // 성별
+  age: number;           // 나이
+  yearsOfService: number; // 근속년수
+  agreementStatus: string; // 동의여부 (Y/N)
+  isImplemented: string;   // 실시여부 (Y/N)
+}
+
+// src/lib/excel-parser.ts
+import * as XLSX from 'xlsx';
+import { Employee } from './types';
+
+export class ExcelParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ExcelParseError';
+  }
+}
+
+export async function parseExcelFile(file: File): Promise<Employee[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Get first sheet
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+        
+        // Validate column count
+        if (jsonData[0].length < 19) {
+          throw new ExcelParseError('Excel 파일의 열 구조가 올바르지 않습니다. 19개의 열이 필요합니다.');
+        }
+        
+        // Skip header row and map data to Employee interface
+        const employees: Employee[] = [];
+        
+        for (let i = 1; i < jsonData.length; i++) {
+          const row = jsonData[i];
+          
+          // Skip empty rows
+          if (!row[0]) continue;
+          
+          const employee: Employee = {
+            employeeId: String(row[0] || ''),
+            name: String(row[1] || ''),
+            majorOrg: String(row[2] || ''),
+            organization: String(row[3] || ''),
+            grade: String(row[4] || ''),
+            gradeYear: Number(row[5] || 0),
+            position: String(row[6] || ''),
+            hiringType: String(row[7] || ''),
+            gender: String(row[8] || ''),
+            age: Number(row[9] || 0),
+            yearsOfService: Number(row[10] || 0),
+            agreementStatus: String(row[11] || 'N'),
+            isImplemented: String(row[12] || 'N')
+          };
+          
+          employees.push(employee);
+        }
+        
+        resolve(employees);
+      } catch (error) {
+        if (error instanceof ExcelParseError) {
+          reject(error);
+        } else {
+          reject(new ExcelParseError('Excel 파일 파싱 중 오류가 발생했습니다.'));
+        }
+      }
+    };
+    
+    reader.onerror = () => {
+      reject(new ExcelParseError('파일 읽기 오류가 발생했습니다.'));
+    };
+    
+    reader.readAsArrayBuffer(file);
+  });
+}
+```
+
+# Test Strategy:
+1. 다양한 형식의 Excel 파일로 테스트 (.xlsx, .xls)
+2. 올바른 열 구조와 잘못된 열 구조의 파일로 테스트
+3. 대용량 데이터 (3,000명 이상)로 성능 테스트
+4. 다양한 데이터 타입 (숫자, 문자열, 날짜 등)에 대한 파싱 정확도 테스트
+5. 오류 처리 및 예외 상황 테스트
+
+# Subtasks:
+## 1. Employee 인터페이스 정의 및 확장 [pending]
+### Dependencies: None
+### Description: Employee 인터페이스를 정의하고 필요한 타입 정의를 완성합니다.
+### Details:
+src/lib/types.ts 파일에 Employee 인터페이스를 구현합니다. 각 필드에 대한 주석을 추가하고, 필요한 경우 추가 타입(예: 열거형)을 정의합니다. 모든 필드의 타입이 명확하게 지정되어야 합니다. 또한 ExcelParseError 클래스도 이 파일에 정의합니다.
+
+## 2. SheetJS 설치 및 기본 파서 구조 구현 [pending]
+### Dependencies: 3.1
+### Description: SheetJS 라이브러리를 설치하고 Excel 파서의 기본 구조를 구현합니다.
+### Details:
+npm install xlsx 명령으로 SheetJS를 설치합니다. src/lib/excel-parser.ts 파일을 생성하고 기본 구조(파일 읽기, 워크북 로드)를 구현합니다. parseExcelFile 함수의 기본 구조와 에러 처리 로직을 구현합니다.
+
+## 3. Excel 데이터 추출 및 JSON 변환 구현 [pending]
+### Dependencies: 3.2
+### Description: Excel 워크시트에서 데이터를 추출하고 JSON 형식으로 변환하는 로직을 구현합니다.
+### Details:
+워크시트에서 첫 번째 시트를 선택하고 XLSX.utils.sheet_to_json 함수를 사용하여 데이터를 추출합니다. 열 구조 검증 로직을 구현하여 19개의 필수 열이 있는지 확인합니다. 헤더 행을 건너뛰고 데이터 행만 처리하는 로직을 구현합니다.
+
+## 4. Employee 객체 매핑 및 데이터 변환 구현 [pending]
+### Dependencies: 3.3
+### Description: 추출된 Excel 데이터를 Employee 인터페이스에 맞게 매핑하는 로직을 구현합니다.
+### Details:
+각 Excel 행을 Employee 객체로 변환하는 매핑 로직을 구현합니다. 각 필드의 타입 변환(문자열, 숫자 등)을 올바르게 처리합니다. 빈 셀이나 누락된 데이터에 대한 기본값 처리 로직을 구현합니다. 특히 gradeYear, age, yearsOfService는 숫자로, 나머지는 문자열로 변환합니다.
+
+## 5. 데이터 유효성 검사 및 오류 처리 구현 [pending]
+### Dependencies: 3.4
+### Description: 변환된 데이터의 유효성을 검사하고 오류를 적절히 처리하는 로직을 구현합니다.
+### Details:
+필수 필드(employeeId, name 등)의 존재 여부를 확인하는 유효성 검사 로직을 구현합니다. 데이터 형식 오류(예: 숫자 필드에 문자열)를 감지하고 처리하는 로직을 구현합니다. 오류 발생 시 적절한 오류 메시지와 함께 ExcelParseError를 발생시킵니다. 빈 행 건너뛰기 및 최종 결과 반환 로직을 완성합니다.
+

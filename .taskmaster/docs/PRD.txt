@@ -1,0 +1,168 @@
+# 제도변경 동의 현황 대시보드 PRD
+
+## 개요 (Overview)
+Excel 파일 업로드로 직원 제도변경 동의 현황을 확인하는 간단한 웹 대시보드
+
+**해결하는 문제**: 3,000명 직원 동의 현황 수동 집계의 번거로움
+
+**대상 사용자**: HR 담당자
+
+**핵심 가치**: Excel 업로드만으로 즉시 동의 현황 시각화
+
+## 핵심 기능 (Core Features)
+
+### 1. Excel 파일 업로드
+- 드래그 앤 드롭 또는 클릭 업로드
+- 19개 고정 열 구조 파싱
+- 업로드 완료 시 동으로 대시보드 표시
+
+### 2. 핵심 지표 (2개)
+- **전체 동의율**: (동의자/전체인원) × 100 (소수점 1자리)
+- **진행인원 중 동의율**: (동의자/실시자) × 100 (소수점 1자리)
+- 간단한 원형 차트로 표시
+
+### 3. 분석 버튼 (9개)S$image.pngimage.png
+클릭 시 막대 차트로 표시:
+- 구분별 | 대조직별 | Grade별 | Grade년차별 | 입사구분별
+- 직책별 | 나이대별 | 근속년수별 | 성별별
+
+### 4. 비동의자 목록
+- 비동의자만 보여주는 간단한 테이블
+- 사번, 성명, 조직, Grade 표시
+
+## 사용자 경험 (User Experience)
+
+### 사용자 플로우
+1. 웹사이트 접속 → 파일 업로드 → 대시보드 확인
+2. 분석 버튼 클릭 → 차트 확인
+3. 비동의자 목록 버튼 클릭 → 목록 확인
+
+### UI 요구사항
+- 반응형 (모바일, 데스크톱 지원)
+- 직관적이고 단순한 인터페이스
+
+## 기술 아키텍처 (Technical Architecture)
+
+### 기술 스택
+- **Next.js** + **TypeScript**
+- **TailwindCSS** + **ShadCN**
+- **Recharts** (차트)
+- **SheetJS** (Excel 처리)
+
+### 데이터 모델
+```typescript
+interface Employee {
+  employeeId: string;    // 사번
+  name: string;          // 성명
+  majorOrg: string;      // 대조직
+  organization: string;  // 조직
+  grade: string;         // Grade
+  gradeYear: number;     // Grade년차
+  position: string;      // 직책
+  hiringType: string;    // 입사구분
+  gender: string;        // 성별
+  age: number;           // 나이
+  yearsOfService: number; // 근속년수
+  agreementStatus: string; // 동의여부 (Y/N)
+  isImplemented: string;   // 실시여부 (Y/N)
+}
+```
+
+### 컴포넌트 구조
+```
+1. FileUpload      // 파일 업로드
+2. KPICards        // 상단 2개 지표
+3. AnalysisButtons // 9개 분석 버튼
+4. ResultChart     // 선택된 분석 결과
+5. DisagreementList // 비동의자 목록
+```
+
+## 개발 로드맵 (Development Roadmap)
+
+### Phase 1: 기본 기능 (MVP)
+- Next.js 프로젝트 설정
+- 파일 업로드 기능
+- Excel 파싱 (SheetJS)
+- 2개 KPI 계산 및 표시
+- 기본 원형 차트
+
+### Phase 2: 분석 기능
+- 9개 분석 버튼
+- 막대 차트 표시
+- 기본 반응형 레이아웃
+
+### Phase 3: 완성
+- 비동의자 목록 테이블
+- 모바일 최적화
+- 기본 스타일링
+
+## 논리적 의존성 체인 (Logical Dependency Chain)
+
+### 개발 순서
+1. **프로젝트 설정**: Next.js + ShadCN 설치
+2. **파일 업로드**: 가장 기본이 되는 기능
+3. **데이터 파싱**: Excel → JSON 변환
+4. **KPI 표시**: 숫자로 먼저, 차트는 나중
+5. **첫 번째 분석**: 구분별 분석 완성
+6. **나머지 분석**: 8개 분석 기능 추가
+7. **비동의자 목록**: 마지막 기능
+
+### 빠른 결과물 전략
+- 1일차: 파일 업로드 + 숫자 KPI
+- 2일차: 기본 차트 + 첫 분석
+- 3일차: 나머지 분석 + 비동의자 목록
+
+## 위험 요소 및 대응 방안 (Risks and Mitigations)
+
+### 기술적 위험
+**위험**: 대용량 데이터 처리
+- **대응**: 3,000행은 클라이언트에서 충분히 처리 가능
+
+**위험**: Excel 파일 형식 오류
+- **대응**: 명확한 에러 메시지로 사용자 안내
+
+### 개발 위험
+**위험**: 기능 과다 설계
+- **대응**: MVP에 집중, 애니메이션은 제외
+
+**위험**: 복잡한 상태 관리
+- **대응**: useState만 사용, 외부 상태관리 라이브러리 배제
+
+## 부록 (Appendix)
+
+### 화면 구성
+```
+업로드 화면:
+┌─────────────────┐
+│ 파일 업로드     │
+│ [드롭존]        │
+└─────────────────┘
+
+메인 대시보드:
+┌─────────────────┐
+│ [새파일업로드]   │
+├─────────────────┤
+│ [전체] [진행중]  │ <- KPI
+├─────────────────┤
+│ [9개 분석버튼]   │
+├─────────────────┤
+│ [비동의자목록]   │
+├─────────────────┤
+│ [선택된 차트]    │
+└─────────────────┘
+```
+
+### 파일 구조
+```
+src/
+├── app/page.tsx
+├── components/
+│   ├── FileUpload.tsx
+│   ├── KPICards.tsx
+│   ├── AnalysisButtons.tsx
+│   ├── ResultChart.tsx
+│   └── DisagreementList.tsx
+└── lib/
+    ├── excel-parser.ts
+    └── data-analyzer.ts
+```

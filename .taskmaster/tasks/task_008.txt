@@ -1,0 +1,109 @@
+# Task ID: 8
+# Title: 비동의자 목록 컴포넌트 구현
+# Status: pending
+# Dependencies: 1, 4
+# Priority: medium
+# Description: 비동의자 목록을 테이블 형태로 표시하는 컴포넌트를 구현합니다.
+# Details:
+1. DisagreementList.tsx 컴포넌트 생성
+2. ShadCN의 테이블 컴포넌트 활용
+3. 사번, 성명, 조직, Grade 정보 표시
+4. 페이지네이션 구현
+5. 반응형 테이블 레이아웃 적용
+
+```typescript
+// src/components/DisagreementList.tsx
+import { useState } from 'react';
+import { Employee } from '@/lib/types';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+
+interface DisagreementListProps {
+  employees: Employee[];
+}
+
+export default function DisagreementList({ employees }: DisagreementListProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  const disagreedEmployees = employees.filter(e => e.agreementStatus !== 'Y');
+  const totalPages = Math.ceil(disagreedEmployees.length / itemsPerPage);
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentEmployees = disagreedEmployees.slice(startIndex, startIndex + itemsPerPage);
+  
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>비동의자 목록 ({disagreedEmployees.length}명)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>사번</TableHead>
+                <TableHead>성명</TableHead>
+                <TableHead>조직</TableHead>
+                <TableHead>Grade</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentEmployees.length > 0 ? (
+                currentEmployees.map((employee) => (
+                  <TableRow key={employee.employeeId}>
+                    <TableCell>{employee.employeeId}</TableCell>
+                    <TableCell>{employee.name}</TableCell>
+                    <TableCell>{employee.organization}</TableCell>
+                    <TableCell>{employee.grade}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">비동의자가 없습니다.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center space-x-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              이전
+            </Button>
+            <span className="text-sm">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              다음
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+# Test Strategy:
+1. 다양한 크기의 비동의자 목록으로 테스트
+2. 페이지네이션 기능 테스트
+3. 테이블 헤더와 데이터가 올바르게 정렬되는지 확인
+4. 반응형 레이아웃 테스트 (모바일에서의 테이블 표시)
+5. 엣지 케이스 테스트 (비동의자 없음, 단일 페이지 등)

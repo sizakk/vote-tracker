@@ -1,0 +1,22 @@
+# Task ID: 1
+# Title: Next.js 프로젝트 설정 및 기본 구조 구축
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Next.js, TypeScript, TailwindCSS, ShadCN을 사용하여 프로젝트를 설정하고 기본 컴포넌트 구조를 구축합니다.
+# Details:
+1. Next.js 프로젝트 생성: `npx create-next-app@latest --typescript`
+2. TailwindCSS 설치: `npm install -D tailwindcss postcss autoprefixer`
+3. TailwindCSS 초기화: `npx tailwindcss init -p`
+4. ShadCN 설치: `npx shadcn-ui@latest init`
+5. 필요한 ShadCN 컴포넌트 추가: `npx shadcn-ui@latest add button card dropzone`
+6. 기본 파일 구조 생성:
+   - src/app/page.tsx (메인 페이지)
+   - src/components/ (컴포넌트 폴더)
+   - src/lib/ (유틸리티 폴더)
+7. 기본 레이아웃 구성 (반응형 지원)
+
+# Test Strategy:
+1. 프로젝트가 오류 없이 빌드되는지 확인
+2. 개발 서버에서 기본 페이지가 렌더링되는지 확인
+3. 반응형 레이아웃이 모바일과 데스크톱에서 제대로 작동하는지 확인

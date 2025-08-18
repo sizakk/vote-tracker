@@ -1,0 +1,205 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Next.js 프로젝트 설정 및 기본 구조 구축",
+        "description": "Next.js, TypeScript, TailwindCSS, ShadCN을 사용하여 프로젝트를 설정하고 기본 컴포넌트 구조를 구축합니다.",
+        "details": "1. Next.js 프로젝트 생성: `npx create-next-app@latest --typescript`\n2. TailwindCSS 설치: `npm install -D tailwindcss postcss autoprefixer`\n3. TailwindCSS 초기화: `npx tailwindcss init -p`\n4. ShadCN 설치: `npx shadcn-ui@latest init`\n5. 필요한 ShadCN 컴포넌트 추가: `npx shadcn-ui@latest add button card dropzone`\n6. 기본 파일 구조 생성:\n   - src/app/page.tsx (메인 페이지)\n   - src/components/ (컴포넌트 폴더)\n   - src/lib/ (유틸리티 폴더)\n7. 기본 레이아웃 구성 (반응형 지원)",
+        "testStrategy": "1. 프로젝트가 오류 없이 빌드되는지 확인\n2. 개발 서버에서 기본 페이지가 렌더링되는지 확인\n3. 반응형 레이아웃이 모바일과 데스크톱에서 제대로 작동하는지 확인",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "파일 업로드 컴포넌트 구현",
+        "description": "사용자가 Excel 파일을 드래그 앤 드롭하거나 클릭하여 업로드할 수 있는 컴포넌트를 구현합니다.",
+        "details": "1. FileUpload.tsx 컴포넌트 생성\n2. ShadCN의 Dropzone 컴포넌트 활용\n3. 파일 선택 및 드래그 앤 드롭 이벤트 처리\n4. 파일 유효성 검사 (Excel 파일만 허용)\n5. 업로드 상태 표시 (로딩, 성공, 오류)\n6. 업로드된 파일을 상위 컴포넌트로 전달하는 콜백 함수 구현\n\n```typescript\n// src/components/FileUpload.tsx\nimport { useState } from 'react';\nimport { Button } from './ui/button';\nimport { Card } from './ui/card';\n\ninterface FileUploadProps {\n  onFileUpload: (file: File) => void;\n}\n\nexport default function FileUpload({ onFileUpload }: FileUploadProps) {\n  const [isDragging, setIsDragging] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n  \n  const handleDragOver = (e: React.DragEvent) => {\n    e.preventDefault();\n    setIsDragging(true);\n  };\n  \n  const handleDragLeave = () => {\n    setIsDragging(false);\n  };\n  \n  const handleDrop = (e: React.DragEvent) => {\n    e.preventDefault();\n    setIsDragging(false);\n    \n    const file = e.dataTransfer.files[0];\n    validateAndUpload(file);\n  };\n  \n  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {\n    if (e.target.files && e.target.files[0]) {\n      validateAndUpload(e.target.files[0]);\n    }\n  };\n  \n  const validateAndUpload = (file: File) => {\n    setError(null);\n    \n    // Check if file is Excel\n    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {\n      setError('Excel 파일만 업로드 가능합니다.');\n      return;\n    }\n    \n    onFileUpload(file);\n  };\n  \n  return (\n    <Card className={`p-8 text-center ${isDragging ? 'border-blue-500' : ''}`}\n      onDragOver={handleDragOver}\n      onDragLeave={handleDragLeave}\n      onDrop={handleDrop}>\n      <div className=\"p-6 border-2 border-dashed rounded-lg\">\n        <p className=\"mb-4\">Excel 파일을 드래그하거나 클릭하여 업로드하세요</p>\n        <input\n          type=\"file\"\n          accept=\".xlsx,.xls\"\n          className=\"hidden\"\n          id=\"file-upload\"\n          onChange={handleFileChange}\n        />\n        <Button asChild>\n          <label htmlFor=\"file-upload\">파일 선택</label>\n        </Button>\n        {error && <p className=\"mt-2 text-red-500\">{error}</p>}\n      </div>\n    </Card>\n  );\n}\n```",
+        "testStrategy": "1. 다양한 파일 형식으로 업로드 테스트 (Excel, PDF, 이미지 등)\n2. 드래그 앤 드롭 기능 테스트\n3. 클릭 업로드 기능 테스트\n4. 오류 메시지 표시 확인\n5. 파일 업로드 콜백 함수가 제대로 호출되는지 확인",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Excel 파일 파싱 유틸리티 구현",
+        "description": "SheetJS를 사용하여 업로드된 Excel 파일을 파싱하고 Employee 인터페이스에 맞는 JSON 데이터로 변환합니다.",
+        "details": "1. SheetJS 설치: `npm install xlsx`\n2. excel-parser.ts 유틸리티 파일 생성\n3. Employee 인터페이스 정의\n4. Excel 파일 읽기 및 파싱 함수 구현\n5. 19개 고정 열 구조에 맞게 데이터 매핑\n6. 데이터 유효성 검사 및 오류 처리\n\n```typescript\n// src/lib/types.ts\nexport interface Employee {\n  employeeId: string;    // 사번\n  name: string;          // 성명\n  majorOrg: string;      // 대조직\n  organization: string;  // 조직\n  grade: string;         // Grade\n  gradeYear: number;     // Grade년차\n  position: string;      // 직책\n  hiringType: string;    // 입사구분\n  gender: string;        // 성별\n  age: number;           // 나이\n  yearsOfService: number; // 근속년수\n  agreementStatus: string; // 동의여부 (Y/N)\n  isImplemented: string;   // 실시여부 (Y/N)\n}\n\n// src/lib/excel-parser.ts\nimport * as XLSX from 'xlsx';\nimport { Employee } from './types';\n\nexport class ExcelParseError extends Error {\n  constructor(message: string) {\n    super(message);\n    this.name = 'ExcelParseError';\n  }\n}\n\nexport async function parseExcelFile(file: File): Promise<Employee[]> {\n  return new Promise((resolve, reject) => {\n    const reader = new FileReader();\n    \n    reader.onload = (e) => {\n      try {\n        const data = new Uint8Array(e.target?.result as ArrayBuffer);\n        const workbook = XLSX.read(data, { type: 'array' });\n        \n        // Get first sheet\n        const worksheet = workbook.Sheets[workbook.SheetNames[0]];\n        \n        // Convert to JSON\n        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];\n        \n        // Validate column count\n        if (jsonData[0].length < 19) {\n          throw new ExcelParseError('Excel 파일의 열 구조가 올바르지 않습니다. 19개의 열이 필요합니다.');\n        }\n        \n        // Skip header row and map data to Employee interface\n        const employees: Employee[] = [];\n        \n        for (let i = 1; i < jsonData.length; i++) {\n          const row = jsonData[i];\n          \n          // Skip empty rows\n          if (!row[0]) continue;\n          \n          const employee: Employee = {\n            employeeId: String(row[0] || ''),\n            name: String(row[1] || ''),\n            majorOrg: String(row[2] || ''),\n            organization: String(row[3] || ''),\n            grade: String(row[4] || ''),\n            gradeYear: Number(row[5] || 0),\n            position: String(row[6] || ''),\n            hiringType: String(row[7] || ''),\n            gender: String(row[8] || ''),\n            age: Number(row[9] || 0),\n            yearsOfService: Number(row[10] || 0),\n            agreementStatus: String(row[11] || 'N'),\n            isImplemented: String(row[12] || 'N')\n          };\n          \n          employees.push(employee);\n        }\n        \n        resolve(employees);\n      } catch (error) {\n        if (error instanceof ExcelParseError) {\n          reject(error);\n        } else {\n          reject(new ExcelParseError('Excel 파일 파싱 중 오류가 발생했습니다.'));\n        }\n      }\n    };\n    \n    reader.onerror = () => {\n      reject(new ExcelParseError('파일 읽기 오류가 발생했습니다.'));\n    };\n    \n    reader.readAsArrayBuffer(file);\n  });\n}\n```",
+        "testStrategy": "1. 다양한 형식의 Excel 파일로 테스트 (.xlsx, .xls)\n2. 올바른 열 구조와 잘못된 열 구조의 파일로 테스트\n3. 대용량 데이터 (3,000명 이상)로 성능 테스트\n4. 다양한 데이터 타입 (숫자, 문자열, 날짜 등)에 대한 파싱 정확도 테스트\n5. 오류 처리 및 예외 상황 테스트",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Employee 인터페이스 정의 및 확장",
+            "description": "Employee 인터페이스를 정의하고 필요한 타입 정의를 완성합니다.",
+            "dependencies": [],
+            "details": "src/lib/types.ts 파일에 Employee 인터페이스를 구현합니다. 각 필드에 대한 주석을 추가하고, 필요한 경우 추가 타입(예: 열거형)을 정의합니다. 모든 필드의 타입이 명확하게 지정되어야 합니다. 또한 ExcelParseError 클래스도 이 파일에 정의합니다.",
+            "status": "done",
+            "testStrategy": "TypeScript 컴파일러를 통해 타입 정의가 올바른지 확인합니다."
+          },
+          {
+            "id": 2,
+            "title": "SheetJS 설치 및 기본 파서 구조 구현",
+            "description": "SheetJS 라이브러리를 설치하고 Excel 파서의 기본 구조를 구현합니다.",
+            "dependencies": [
+              1
+            ],
+            "details": "npm install xlsx 명령으로 SheetJS를 설치합니다. src/lib/excel-parser.ts 파일을 생성하고 기본 구조(파일 읽기, 워크북 로드)를 구현합니다. parseExcelFile 함수의 기본 구조와 에러 처리 로직을 구현합니다.",
+            "status": "done",
+            "testStrategy": "간단한 Excel 파일을 사용하여 파일 로드 기능이 작동하는지 테스트합니다."
+          },
+          {
+            "id": 3,
+            "title": "Excel 데이터 추출 및 JSON 변환 구현",
+            "description": "Excel 워크시트에서 데이터를 추출하고 JSON 형식으로 변환하는 로직을 구현합니다.",
+            "dependencies": [
+              2
+            ],
+            "details": "워크시트에서 첫 번째 시트를 선택하고 XLSX.utils.sheet_to_json 함수를 사용하여 데이터를 추출합니다. 열 구조 검증 로직을 구현하여 19개의 필수 열이 있는지 확인합니다. 헤더 행을 건너뛰고 데이터 행만 처리하는 로직을 구현합니다.",
+            "status": "done",
+            "testStrategy": "다양한 구조의 Excel 파일로 테스트하여 데이터 추출이 올바르게 작동하는지 확인합니다."
+          },
+          {
+            "id": 4,
+            "title": "Employee 객체 매핑 및 데이터 변환 구현",
+            "description": "추출된 Excel 데이터를 Employee 인터페이스에 맞게 매핑하는 로직을 구현합니다.",
+            "dependencies": [
+              3
+            ],
+            "details": "각 Excel 행을 Employee 객체로 변환하는 매핑 로직을 구현합니다. 각 필드의 타입 변환(문자열, 숫자 등)을 올바르게 처리합니다. 빈 셀이나 누락된 데이터에 대한 기본값 처리 로직을 구현합니다. 특히 gradeYear, age, yearsOfService는 숫자로, 나머지는 문자열로 변환합니다.",
+            "status": "done",
+            "testStrategy": "다양한 데이터 유형과 누락된 데이터가 있는 Excel 파일로 테스트합니다."
+          },
+          {
+            "id": 5,
+            "title": "데이터 유효성 검사 및 오류 처리 구현",
+            "description": "변환된 데이터의 유효성을 검사하고 오류를 적절히 처리하는 로직을 구현합니다.",
+            "dependencies": [
+              4
+            ],
+            "details": "필수 필드(employeeId, name 등)의 존재 여부를 확인하는 유효성 검사 로직을 구현합니다. 데이터 형식 오류(예: 숫자 필드에 문자열)를 감지하고 처리하는 로직을 구현합니다. 오류 발생 시 적절한 오류 메시지와 함께 ExcelParseError를 발생시킵니다. 빈 행 건너뛰기 및 최종 결과 반환 로직을 완성합니다.",
+            "status": "done",
+            "testStrategy": "잘못된 형식의 데이터, 누락된 필수 필드, 빈 행 등 다양한 오류 케이스를 테스트합니다."
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "데이터 분석 유틸리티 구현",
+        "description": "파싱된 데이터를 분석하여 KPI 및 다양한 분석 결과를 계산하는 유틸리티를 구현합니다.",
+        "details": "1. data-analyzer.ts 유틸리티 파일 생성\n2. KPI 계산 함수 구현 (전체 동의율, 진행인원 중 동의율)\n3. 9개 분석 카테고리별 데이터 집계 함수 구현\n4. 비동의자 목록 필터링 함수 구현\n5. 차트 데이터 포맷 변환 함수 구현\n\n```typescript\n// src/lib/data-analyzer.ts\nimport { Employee } from './types';\n\nexport interface KPIResult {\n  totalAgreementRate: number;  // 전체 동의율\n  implementedAgreementRate: number;  // 진행인원 중 동의율\n  totalCount: number;  // 전체 인원\n  agreedCount: number;  // 동의자 수\n  implementedCount: number;  // 실시자 수\n}\n\nexport interface ChartData {\n  name: string;\n  value: number;\n  count: number;\n  total: number;\n}\n\nexport function calculateKPI(employees: Employee[]): KPIResult {\n  const totalCount = employees.length;\n  const agreedCount = employees.filter(e => e.agreementStatus === 'Y').length;\n  const implementedCount = employees.filter(e => e.isImplemented === 'Y').length;\n  \n  const totalAgreementRate = totalCount > 0 \n    ? parseFloat(((agreedCount / totalCount) * 100).toFixed(1)) \n    : 0;\n    \n  const implementedAgreementRate = implementedCount > 0 \n    ? parseFloat(((agreedCount / implementedCount) * 100).toFixed(1)) \n    : 0;\n  \n  return {\n    totalAgreementRate,\n    implementedAgreementRate,\n    totalCount,\n    agreedCount,\n    implementedCount\n  };\n}\n\nexport function getDisagreementList(employees: Employee[]): Employee[] {\n  return employees.filter(e => e.agreementStatus !== 'Y');\n}\n\nexport function analyzeByCategory(employees: Employee[], category: string): ChartData[] {\n  const result = new Map<string, { agreed: number, total: number }>();\n  \n  employees.forEach(employee => {\n    let key = '';\n    \n    switch(category) {\n      case 'majorOrg':\n        key = employee.majorOrg;\n        break;\n      case 'grade':\n        key = employee.grade;\n        break;\n      case 'gradeYear':\n        key = `${employee.gradeYear}년차`;\n        break;\n      case 'hiringType':\n        key = employee.hiringType;\n        break;\n      case 'position':\n        key = employee.position;\n        break;\n      case 'age':\n        const ageGroup = Math.floor(employee.age / 10) * 10;\n        key = `${ageGroup}대`;\n        break;\n      case 'yearsOfService':\n        const serviceGroup = Math.floor(employee.yearsOfService / 5) * 5;\n        key = `${serviceGroup}~${serviceGroup+4}년`;\n        break;\n      case 'gender':\n        key = employee.gender;\n        break;\n      default:\n        key = '기타';\n    }\n    \n    if (!result.has(key)) {\n      result.set(key, { agreed: 0, total: 0 });\n    }\n    \n    const current = result.get(key)!;\n    current.total += 1;\n    \n    if (employee.agreementStatus === 'Y') {\n      current.agreed += 1;\n    }\n  });\n  \n  // Convert to chart data format\n  const chartData: ChartData[] = [];\n  \n  result.forEach((value, key) => {\n    const rate = value.total > 0 \n      ? parseFloat(((value.agreed / value.total) * 100).toFixed(1)) \n      : 0;\n      \n    chartData.push({\n      name: key,\n      value: rate,\n      count: value.agreed,\n      total: value.total\n    });\n  });\n  \n  // Sort by name\n  return chartData.sort((a, b) => a.name.localeCompare(b.name));\n}\n```",
+        "testStrategy": "1. 다양한 샘플 데이터로 KPI 계산 정확도 테스트\n2. 각 분석 카테고리별 결과 정확도 테스트\n3. 엣지 케이스 테스트 (빈 데이터셋, 모두 동의, 모두 비동의 등)\n4. 대용량 데이터 성능 테스트\n5. 소수점 처리 정확도 테스트",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "KPI 카드 컴포넌트 구현",
+        "description": "전체 동의율과 진행인원 중 동의율을 표시하는 KPI 카드 컴포넌트를 구현합니다.",
+        "details": "1. KPICards.tsx 컴포넌트 생성\n2. 원형 차트 구현 (Recharts 사용)\n3. 숫자 및 퍼센트 표시\n4. 반응형 레이아웃 적용\n\n```typescript\n// src/components/KPICards.tsx\nimport { Card, CardContent, CardHeader, CardTitle } from './ui/card';\nimport { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';\nimport { KPIResult } from '@/lib/data-analyzer';\n\ninterface KPICardsProps {\n  kpiData: KPIResult;\n}\n\nexport default function KPICards({ kpiData }: KPICardsProps) {\n  const { totalAgreementRate, implementedAgreementRate, totalCount, agreedCount, implementedCount } = kpiData;\n  \n  // Data for total agreement rate pie chart\n  const totalData = [\n    { name: '동의', value: agreedCount },\n    { name: '미동의', value: totalCount - agreedCount }\n  ];\n  \n  // Data for implemented agreement rate pie chart\n  const implementedData = [\n    { name: '동의', value: agreedCount },\n    { name: '미동의', value: implementedCount - agreedCount }\n  ];\n  \n  const COLORS = ['#4CAF50', '#F44336'];\n  \n  return (\n    <div className=\"grid grid-cols-1 md:grid-cols-2 gap-4\">\n      <Card>\n        <CardHeader>\n          <CardTitle>전체 동의율</CardTitle>\n        </CardHeader>\n        <CardContent className=\"flex flex-col items-center\">\n          <div className=\"text-3xl font-bold mb-2\">{totalAgreementRate}%</div>\n          <div className=\"text-sm text-gray-500 mb-4\">{agreedCount} / {totalCount}명</div>\n          <div className=\"w-full h-48\">\n            <ResponsiveContainer width=\"100%\" height=\"100%\">\n              <PieChart>\n                <Pie\n                  data={totalData}\n                  cx=\"50%\"\n                  cy=\"50%\"\n                  innerRadius={60}\n                  outerRadius={80}\n                  paddingAngle={5}\n                  dataKey=\"value\"\n                >\n                  {totalData.map((entry, index) => (\n                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />\n                  ))}\n                </Pie>\n                <Tooltip formatter={(value) => [`${value}명`, '']} />\n              </PieChart>\n            </ResponsiveContainer>\n          </div>\n        </CardContent>\n      </Card>\n      \n      <Card>\n        <CardHeader>\n          <CardTitle>진행인원 중 동의율</CardTitle>\n        </CardHeader>\n        <CardContent className=\"flex flex-col items-center\">\n          <div className=\"text-3xl font-bold mb-2\">{implementedAgreementRate}%</div>\n          <div className=\"text-sm text-gray-500 mb-4\">{agreedCount} / {implementedCount}명</div>\n          <div className=\"w-full h-48\">\n            <ResponsiveContainer width=\"100%\" height=\"100%\">\n              <PieChart>\n                <Pie\n                  data={implementedData}\n                  cx=\"50%\"\n                  cy=\"50%\"\n                  innerRadius={60}\n                  outerRadius={80}\n                  paddingAngle={5}\n                  dataKey=\"value\"\n                >\n                  {implementedData.map((entry, index) => (\n                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />\n                  ))}\n                </Pie>\n                <Tooltip formatter={(value) => [`${value}명`, '']} />\n              </PieChart>\n            </ResponsiveContainer>\n          </div>\n        </CardContent>\n      </Card>\n    </div>\n  );\n}\n```",
+        "testStrategy": "1. 다양한 KPI 값으로 렌더링 테스트\n2. 원형 차트가 데이터에 따라 올바르게 표시되는지 확인\n3. 반응형 레이아웃 테스트 (모바일, 태블릿, 데스크톱)\n4. 엣지 케이스 테스트 (0%, 100%, 데이터 없음 등)\n5. 접근성 테스트 (스크린 리더 호환성)",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "분석 버튼 컴포넌트 구현",
+        "description": "9개의 분석 버튼을 표시하고 클릭 시 해당 분석 결과를 요청하는 컴포넌트를 구현합니다.",
+        "details": "1. AnalysisButtons.tsx 컴포넌트 생성\n2. 9개 분석 버튼 구현 (구분별, 대조직별, Grade별, Grade년차별, 입사구분별, 직책별, 나이대별, 근속년수별, 성별별)\n3. 버튼 클릭 이벤트 처리\n4. 선택된 버튼 상태 관리\n5. 반응형 그리드 레이아웃 적용\n\n```typescript\n// src/components/AnalysisButtons.tsx\nimport { Button } from './ui/button';\n\ninterface AnalysisButtonsProps {\n  onSelectAnalysis: (category: string) => void;\n  selectedCategory: string | null;\n}\n\nexport default function AnalysisButtons({ onSelectAnalysis, selectedCategory }: AnalysisButtonsProps) {\n  const analysisCategories = [\n    { id: 'majorOrg', label: '대조직별' },\n    { id: 'grade', label: 'Grade별' },\n    { id: 'gradeYear', label: 'Grade년차별' },\n    { id: 'hiringType', label: '입사구분별' },\n    { id: 'position', label: '직책별' },\n    { id: 'age', label: '나이대별' },\n    { id: 'yearsOfService', label: '근속년수별' },\n    { id: 'gender', label: '성별별' },\n    { id: 'department', label: '구분별' }\n  ];\n  \n  return (\n    <div className=\"my-6\">\n      <h2 className=\"text-lg font-semibold mb-3\">분석 카테고리</h2>\n      <div className=\"grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2\">\n        {analysisCategories.map((category) => (\n          <Button\n            key={category.id}\n            variant={selectedCategory === category.id ? \"default\" : \"outline\"}\n            onClick={() => onSelectAnalysis(category.id)}\n            className=\"w-full\"\n          >\n            {category.label}\n          </Button>\n        ))}\n      </div>\n    </div>\n  );\n}\n```",
+        "testStrategy": "1. 모든 버튼이 올바르게 렌더링되는지 확인\n2. 버튼 클릭 시 onSelectAnalysis 콜백이 올바른 카테고리와 함께 호출되는지 확인\n3. 선택된 버튼이 시각적으로 구분되는지 확인\n4. 반응형 레이아웃 테스트 (다양한 화면 크기)\n5. 키보드 접근성 테스트",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "결과 차트 컴포넌트 구현",
+        "description": "선택된 분석 카테고리에 따라 막대 차트를 표시하는 컴포넌트를 구현합니다.",
+        "details": "1. ResultChart.tsx 컴포넌트 생성\n2. Recharts를 사용한 막대 차트 구현\n3. 동적 데이터 바인딩\n4. 차트 레이블 및 툴팁 구현\n5. 반응형 차트 레이아웃 적용\n\n```typescript\n// src/components/ResultChart.tsx\nimport { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';\nimport { ChartData } from '@/lib/data-analyzer';\nimport { Card, CardContent, CardHeader, CardTitle } from './ui/card';\n\ninterface ResultChartProps {\n  data: ChartData[];\n  category: string;\n}\n\ninterface CustomTooltipProps {\n  active?: boolean;\n  payload?: any[];\n}\n\nconst CustomTooltip = ({ active, payload }: CustomTooltipProps) => {\n  if (active && payload && payload.length) {\n    const data = payload[0].payload;\n    return (\n      <div className=\"bg-white p-3 border rounded shadow-sm\">\n        <p className=\"font-semibold\">{data.name}</p>\n        <p>동의율: {data.value}%</p>\n        <p>동의: {data.count}명 / 전체: {data.total}명</p>\n      </div>\n    );\n  }\n  return null;\n};\n\nconst getCategoryTitle = (category: string): string => {\n  const titles: Record<string, string> = {\n    majorOrg: '대조직별 동의율',\n    grade: 'Grade별 동의율',\n    gradeYear: 'Grade년차별 동의율',\n    hiringType: '입사구분별 동의율',\n    position: '직책별 동의율',\n    age: '나이대별 동의율',\n    yearsOfService: '근속년수별 동의율',\n    gender: '성별별 동의율',\n    department: '구분별 동의율'\n  };\n  \n  return titles[category] || '분석 결과';\n};\n\nexport default function ResultChart({ data, category }: ResultChartProps) {\n  if (!data || data.length === 0) {\n    return (\n      <Card>\n        <CardContent className=\"pt-6 text-center\">\n          <p>데이터가 없습니다.</p>\n        </CardContent>\n      </Card>\n    );\n  }\n  \n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>{getCategoryTitle(category)}</CardTitle>\n      </CardHeader>\n      <CardContent>\n        <div className=\"w-full h-[400px]\">\n          <ResponsiveContainer width=\"100%\" height=\"100%\">\n            <BarChart\n              data={data}\n              margin={{ top: 20, right: 30, left: 20, bottom: 70 }}\n            >\n              <CartesianGrid strokeDasharray=\"3 3\" />\n              <XAxis \n                dataKey=\"name\" \n                angle={-45} \n                textAnchor=\"end\" \n                height={70} \n              />\n              <YAxis \n                label={{ value: '동의율 (%)', angle: -90, position: 'insideLeft' }} \n                domain={[0, 100]} \n              />\n              <Tooltip content={<CustomTooltip />} />\n              <Legend />\n              <Bar dataKey=\"value\" name=\"동의율 (%)\" fill=\"#4CAF50\" />\n            </BarChart>\n          </ResponsiveContainer>\n        </div>\n      </CardContent>\n    </Card>\n  );\n}\n```",
+        "testStrategy": "1. 다양한 데이터셋으로 차트 렌더링 테스트\n2. 차트 레이블, 축, 범례가 올바르게 표시되는지 확인\n3. 툴팁이 올바른 정보를 표시하는지 확인\n4. 반응형 레이아웃 테스트 (다양한 화면 크기)\n5. 엣지 케이스 테스트 (데이터 없음, 단일 항목 등)",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          4,
+          6
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "비동의자 목록 컴포넌트 구현",
+        "description": "비동의자 목록을 테이블 형태로 표시하는 컴포넌트를 구현합니다.",
+        "details": "1. DisagreementList.tsx 컴포넌트 생성\n2. ShadCN의 테이블 컴포넌트 활용\n3. 사번, 성명, 조직, Grade 정보 표시\n4. 페이지네이션 구현\n5. 반응형 테이블 레이아웃 적용\n\n```typescript\n// src/components/DisagreementList.tsx\nimport { useState } from 'react';\nimport { Employee } from '@/lib/types';\nimport { Button } from './ui/button';\nimport { Card, CardContent, CardHeader, CardTitle } from './ui/card';\nimport { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';\n\ninterface DisagreementListProps {\n  employees: Employee[];\n}\n\nexport default function DisagreementList({ employees }: DisagreementListProps) {\n  const [currentPage, setCurrentPage] = useState(1);\n  const itemsPerPage = 10;\n  \n  const disagreedEmployees = employees.filter(e => e.agreementStatus !== 'Y');\n  const totalPages = Math.ceil(disagreedEmployees.length / itemsPerPage);\n  \n  const startIndex = (currentPage - 1) * itemsPerPage;\n  const currentEmployees = disagreedEmployees.slice(startIndex, startIndex + itemsPerPage);\n  \n  const goToPage = (page: number) => {\n    setCurrentPage(Math.max(1, Math.min(page, totalPages)));\n  };\n  \n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>비동의자 목록 ({disagreedEmployees.length}명)</CardTitle>\n      </CardHeader>\n      <CardContent>\n        <div className=\"overflow-x-auto\">\n          <Table>\n            <TableHeader>\n              <TableRow>\n                <TableHead>사번</TableHead>\n                <TableHead>성명</TableHead>\n                <TableHead>조직</TableHead>\n                <TableHead>Grade</TableHead>\n              </TableRow>\n            </TableHeader>\n            <TableBody>\n              {currentEmployees.length > 0 ? (\n                currentEmployees.map((employee) => (\n                  <TableRow key={employee.employeeId}>\n                    <TableCell>{employee.employeeId}</TableCell>\n                    <TableCell>{employee.name}</TableCell>\n                    <TableCell>{employee.organization}</TableCell>\n                    <TableCell>{employee.grade}</TableCell>\n                  </TableRow>\n                ))\n              ) : (\n                <TableRow>\n                  <TableCell colSpan={4} className=\"text-center\">비동의자가 없습니다.</TableCell>\n                </TableRow>\n              )}\n            </TableBody>\n          </Table>\n        </div>\n        \n        {totalPages > 1 && (\n          <div className=\"flex items-center justify-center space-x-2 mt-4\">\n            <Button\n              variant=\"outline\"\n              size=\"sm\"\n              onClick={() => goToPage(currentPage - 1)}\n              disabled={currentPage === 1}\n            >\n              이전\n            </Button>\n            <span className=\"text-sm\">\n              {currentPage} / {totalPages}\n            </span>\n            <Button\n              variant=\"outline\"\n              size=\"sm\"\n              onClick={() => goToPage(currentPage + 1)}\n              disabled={currentPage === totalPages}\n            >\n              다음\n            </Button>\n          </div>\n        )}\n      </CardContent>\n    </Card>\n  );\n}\n```",
+        "testStrategy": "1. 다양한 크기의 비동의자 목록으로 테스트\n2. 페이지네이션 기능 테스트\n3. 테이블 헤더와 데이터가 올바르게 정렬되는지 확인\n4. 반응형 레이아웃 테스트 (모바일에서의 테이블 표시)\n5. 엣지 케이스 테스트 (비동의자 없음, 단일 페이지 등)",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          4
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "메인 페이지 통합 구현",
+        "description": "모든 컴포넌트를 통합하여 메인 페이지를 구현하고 상태 관리를 구현합니다.",
+        "details": "1. page.tsx 파일 구현\n2. 상태 관리 (useState 사용)\n3. 파일 업로드 → 데이터 파싱 → 분석 → 표시 흐름 구현\n4. 오류 처리 및 로딩 상태 관리\n5. 컴포넌트 간 데이터 흐름 구현\n\n```typescript\n// src/app/page.tsx\n'use client';\n\nimport { useState } from 'react';\nimport FileUpload from '@/components/FileUpload';\nimport KPICards from '@/components/KPICards';\nimport AnalysisButtons from '@/components/AnalysisButtons';\nimport ResultChart from '@/components/ResultChart';\nimport DisagreementList from '@/components/DisagreementList';\nimport { Button } from '@/components/ui/button';\nimport { parseExcelFile } from '@/lib/excel-parser';\nimport { analyzeByCategory, calculateKPI, getDisagreementList } from '@/lib/data-analyzer';\nimport { Employee } from '@/lib/types';\nimport { ChartData, KPIResult } from '@/lib/data-analyzer';\n\nexport default function Home() {\n  const [employees, setEmployees] = useState<Employee[]>([]);\n  const [kpiData, setKpiData] = useState<KPIResult | null>(null);\n  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);\n  const [chartData, setChartData] = useState<ChartData[]>([]);\n  const [isLoading, setIsLoading] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n  const [showDisagreementList, setShowDisagreementList] = useState(false);\n  \n  const handleFileUpload = async (file: File) => {\n    setIsLoading(true);\n    setError(null);\n    setSelectedCategory(null);\n    setChartData([]);\n    setShowDisagreementList(false);\n    \n    try {\n      const parsedData = await parseExcelFile(file);\n      setEmployees(parsedData);\n      \n      const kpi = calculateKPI(parsedData);\n      setKpiData(kpi);\n    } catch (err) {\n      setError(err instanceof Error ? err.message : '파일 처리 중 오류가 발생했습니다.');\n      setEmployees([]);\n      setKpiData(null);\n    } finally {\n      setIsLoading(false);\n    }\n  };\n  \n  const handleSelectAnalysis = (category: string) => {\n    setSelectedCategory(category);\n    setShowDisagreementList(false);\n    \n    if (employees.length > 0) {\n      const data = analyzeByCategory(employees, category);\n      setChartData(data);\n    }\n  };\n  \n  const handleShowDisagreementList = () => {\n    setSelectedCategory(null);\n    setShowDisagreementList(true);\n  };\n  \n  const handleNewFileUpload = () => {\n    setEmployees([]);\n    setKpiData(null);\n    setSelectedCategory(null);\n    setChartData([]);\n    setError(null);\n    setShowDisagreementList(false);\n  };\n  \n  return (\n    <main className=\"container mx-auto py-8 px-4\">\n      <h1 className=\"text-2xl font-bold mb-6\">제도변경 동의 현황 대시보드</h1>\n      \n      {!employees.length && !isLoading ? (\n        <FileUpload onFileUpload={handleFileUpload} />\n      ) : (\n        <div className=\"space-y-6\">\n          {isLoading ? (\n            <div className=\"text-center py-12\">\n              <p>데이터를 처리 중입니다...</p>\n            </div>\n          ) : error ? (\n            <div className=\"text-center py-12\">\n              <p className=\"text-red-500\">{error}</p>\n              <Button onClick={handleNewFileUpload} className=\"mt-4\">\n                새 파일 업로드\n              </Button>\n            </div>\n          ) : (\n            <>\n              <div className=\"flex justify-end\">\n                <Button onClick={handleNewFileUpload} variant=\"outline\">\n                  새 파일 업로드\n                </Button>\n              </div>\n              \n              {kpiData && <KPICards kpiData={kpiData} />}\n              \n              <div className=\"flex flex-wrap gap-2 mt-6\">\n                <AnalysisButtons \n                  onSelectAnalysis={handleSelectAnalysis} \n                  selectedCategory={selectedCategory} \n                />\n                \n                <Button \n                  onClick={handleShowDisagreementList}\n                  variant={showDisagreementList ? \"default\" : \"outline\"}\n                  className=\"mt-6\"\n                >\n                  비동의자 목록\n                </Button>\n              </div>\n              \n              {selectedCategory && chartData.length > 0 && (\n                <ResultChart data={chartData} category={selectedCategory} />\n              )}\n              \n              {showDisagreementList && (\n                <DisagreementList employees={employees} />\n              )}\n            </>\n          )}\n        </div>\n      )}\n    </main>\n  );\n}\n```",
+        "testStrategy": "1. 전체 사용자 플로우 테스트 (파일 업로드 → 대시보드 표시 → 분석 선택 → 비동의자 목록 확인)\n2. 오류 처리 테스트 (잘못된 파일 형식, 서버 오류 등)\n3. 상태 관리 테스트 (컴포넌트 간 데이터 흐름)\n4. 반응형 레이아웃 테스트 (모바일, 태블릿, 데스크톱)\n5. 성능 테스트 (대용량 데이터 처리)",
+        "priority": "high",
+        "dependencies": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "최종 테스트 및 최적화",
+        "description": "전체 애플리케이션을 테스트하고 성능, 접근성, 사용자 경험을 최적화합니다.",
+        "details": "1. 전체 애플리케이션 테스트\n   - 다양한 브라우저 테스트 (Chrome, Firefox, Safari, Edge)\n   - 다양한 디바이스 테스트 (데스크톱, 태블릿, 모바일)\n   - 다양한 Excel 파일 형식 테스트\n\n2. 성능 최적화\n   - 대용량 데이터 처리 최적화\n   - 컴포넌트 렌더링 최적화 (React.memo, useMemo, useCallback)\n   - 이미지 및 자원 최적화\n\n3. 접근성 개선\n   - ARIA 속성 추가\n   - 키보드 탐색 지원\n   - 색상 대비 확인\n\n4. 오류 처리 강화\n   - 사용자 친화적인 오류 메시지\n   - 예외 상황 처리\n\n5. 최종 빌드 및 배포 준비\n   - 프로덕션 빌드 생성\n   - 환경 변수 설정\n   - 배포 스크립트 작성\n\n```typescript\n// 성능 최적화 예시 (React.memo 적용)\nimport React from 'react';\n\n// ResultChart 컴포넌트에 React.memo 적용\nconst ResultChart = React.memo(({ data, category }: ResultChartProps) => {\n  // 기존 코드\n});\n\n// useMemo 예시 (data-analyzer.ts)\nimport { useMemo } from 'react';\n\nexport function useAnalyzedData(employees: Employee[], category: string | null) {\n  return useMemo(() => {\n    if (!employees.length || !category) return [];\n    return analyzeByCategory(employees, category);\n  }, [employees, category]);\n}\n\n// 대용량 데이터 처리 최적화 예시\nfunction processLargeDataset(employees: Employee[]) {\n  // 청크 단위로 처리하여 UI 블로킹 방지\n  return new Promise<void>((resolve) => {\n    const chunkSize = 500;\n    const chunks = Math.ceil(employees.length / chunkSize);\n    let processedChunks = 0;\n    \n    function processChunk(chunkIndex: number) {\n      const start = chunkIndex * chunkSize;\n      const end = Math.min(start + chunkSize, employees.length);\n      const chunk = employees.slice(start, end);\n      \n      // 청크 처리 로직\n      // ...\n      \n      processedChunks++;\n      \n      if (processedChunks < chunks) {\n        // 다음 청크를 비동기적으로 처리하여 UI 렌더링 허용\n        setTimeout(() => processChunk(chunkIndex + 1), 0);\n      } else {\n        resolve();\n      }\n    }\n    \n    // 첫 번째 청크 처리 시작\n    processChunk(0);\n  });\n}\n```",
+        "testStrategy": "1. 엔드 투 엔드 테스트\n   - 실제 사용자 시나리오 테스트\n   - 다양한 입력 데이터로 테스트\n\n2. 성능 테스트\n   - 로딩 시간 측정\n   - 메모리 사용량 모니터링\n   - 대용량 데이터 처리 시간 측정\n\n3. 접근성 테스트\n   - 스크린 리더 호환성 테스트\n   - 키보드 탐색 테스트\n   - 색상 대비 검사\n\n4. 크로스 브라우저 테스트\n   - 주요 브라우저에서의 호환성 확인\n   - 모바일 브라우저 테스트\n\n5. 사용자 경험 테스트\n   - HR 담당자 대상 사용성 테스트\n   - 피드백 수집 및 개선",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "done",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-16T15:28:32.109Z",
+      "updated": "2025-08-16T16:06:50.204Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

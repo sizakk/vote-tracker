@@ -1,0 +1,61 @@
+# Task ID: 6
+# Title: 분석 버튼 컴포넌트 구현
+# Status: pending
+# Dependencies: 1, 4
+# Priority: medium
+# Description: 9개의 분석 버튼을 표시하고 클릭 시 해당 분석 결과를 요청하는 컴포넌트를 구현합니다.
+# Details:
+1. AnalysisButtons.tsx 컴포넌트 생성
+2. 9개 분석 버튼 구현 (구분별, 대조직별, Grade별, Grade년차별, 입사구분별, 직책별, 나이대별, 근속년수별, 성별별)
+3. 버튼 클릭 이벤트 처리
+4. 선택된 버튼 상태 관리
+5. 반응형 그리드 레이아웃 적용
+
+```typescript
+// src/components/AnalysisButtons.tsx
+import { Button } from './ui/button';
+
+interface AnalysisButtonsProps {
+  onSelectAnalysis: (category: string) => void;
+  selectedCategory: string | null;
+}
+
+export default function AnalysisButtons({ onSelectAnalysis, selectedCategory }: AnalysisButtonsProps) {
+  const analysisCategories = [
+    { id: 'majorOrg', label: '대조직별' },
+    { id: 'grade', label: 'Grade별' },
+    { id: 'gradeYear', label: 'Grade년차별' },
+    { id: 'hiringType', label: '입사구분별' },
+    { id: 'position', label: '직책별' },
+    { id: 'age', label: '나이대별' },
+    { id: 'yearsOfService', label: '근속년수별' },
+    { id: 'gender', label: '성별별' },
+    { id: 'department', label: '구분별' }
+  ];
+  
+  return (
+    <div className="my-6">
+      <h2 className="text-lg font-semibold mb-3">분석 카테고리</h2>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+        {analysisCategories.map((category) => (
+          <Button
+            key={category.id}
+            variant={selectedCategory === category.id ? "default" : "outline"}
+            onClick={() => onSelectAnalysis(category.id)}
+            className="w-full"
+          >
+            {category.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+# Test Strategy:
+1. 모든 버튼이 올바르게 렌더링되는지 확인
+2. 버튼 클릭 시 onSelectAnalysis 콜백이 올바른 카테고리와 함께 호출되는지 확인
+3. 선택된 버튼이 시각적으로 구분되는지 확인
+4. 반응형 레이아웃 테스트 (다양한 화면 크기)
+5. 키보드 접근성 테스트

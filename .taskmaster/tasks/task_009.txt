@@ -1,0 +1,150 @@
+# Task ID: 9
+# Title: 메인 페이지 통합 구현
+# Status: pending
+# Dependencies: 2, 3, 4, 5, 6, 7, 8
+# Priority: high
+# Description: 모든 컴포넌트를 통합하여 메인 페이지를 구현하고 상태 관리를 구현합니다.
+# Details:
+1. page.tsx 파일 구현
+2. 상태 관리 (useState 사용)
+3. 파일 업로드 → 데이터 파싱 → 분석 → 표시 흐름 구현
+4. 오류 처리 및 로딩 상태 관리
+5. 컴포넌트 간 데이터 흐름 구현
+
+```typescript
+// src/app/page.tsx
+'use client';
+
+import { useState } from 'react';
+import FileUpload from '@/components/FileUpload';
+import KPICards from '@/components/KPICards';
+import AnalysisButtons from '@/components/AnalysisButtons';
+import ResultChart from '@/components/ResultChart';
+import DisagreementList from '@/components/DisagreementList';
+import { Button } from '@/components/ui/button';
+import { parseExcelFile } from '@/lib/excel-parser';
+import { analyzeByCategory, calculateKPI, getDisagreementList } from '@/lib/data-analyzer';
+import { Employee } from '@/lib/types';
+import { ChartData, KPIResult } from '@/lib/data-analyzer';
+
+export default function Home() {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [kpiData, setKpiData] = useState<KPIResult | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showDisagreementList, setShowDisagreementList] = useState(false);
+  
+  const handleFileUpload = async (file: File) => {
+    setIsLoading(true);
+    setError(null);
+    setSelectedCategory(null);
+    setChartData([]);
+    setShowDisagreementList(false);
+    
+    try {
+      const parsedData = await parseExcelFile(file);
+      setEmployees(parsedData);
+      
+      const kpi = calculateKPI(parsedData);
+      setKpiData(kpi);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '파일 처리 중 오류가 발생했습니다.');
+      setEmployees([]);
+      setKpiData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleSelectAnalysis = (category: string) => {
+    setSelectedCategory(category);
+    setShowDisagreementList(false);
+    
+    if (employees.length > 0) {
+      const data = analyzeByCategory(employees, category);
+      setChartData(data);
+    }
+  };
+  
+  const handleShowDisagreementList = () => {
+    setSelectedCategory(null);
+    setShowDisagreementList(true);
+  };
+  
+  const handleNewFileUpload = () => {
+    setEmployees([]);
+    setKpiData(null);
+    setSelectedCategory(null);
+    setChartData([]);
+    setError(null);
+    setShowDisagreementList(false);
+  };
+  
+  return (
+    <main className="container mx-auto py-8 px-4">
+      <h1 className="text-2xl font-bold mb-6">제도변경 동의 현황 대시보드</h1>
+      
+      {!employees.length && !isLoading ? (
+        <FileUpload onFileUpload={handleFileUpload} />
+      ) : (
+        <div className="space-y-6">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <p>데이터를 처리 중입니다...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-500">{error}</p>
+              <Button onClick={handleNewFileUpload} className="mt-4">
+                새 파일 업로드
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-end">
+                <Button onClick={handleNewFileUpload} variant="outline">
+                  새 파일 업로드
+                </Button>
+              </div>
+              
+              {kpiData && <KPICards kpiData={kpiData} />}
+              
+              <div className="flex flex-wrap gap-2 mt-6">
+                <AnalysisButtons 
+                  onSelectAnalysis={handleSelectAnalysis} 
+                  selectedCategory={selectedCategory} 
+                />
+                
+                <Button 
+                  onClick={handleShowDisagreementList}
+                  variant={showDisagreementList ? "default" : "outline"}
+                  className="mt-6"
+                >
+                  비동의자 목록
+                </Button>
+              </div>
+              
+              {selectedCategory && chartData.length > 0 && (
+                <ResultChart data={chartData} category={selectedCategory} />
+              )}
+              
+              {showDisagreementList && (
+                <DisagreementList employees={employees} />
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </main>
+  );
+}
+```
+
+# Test Strategy:
+1. 전체 사용자 플로우 테스트 (파일 업로드 → 대시보드 표시 → 분석 선택 → 비동의자 목록 확인)
+2. 오류 처리 테스트 (잘못된 파일 형식, 서버 오류 등)
+3. 상태 관리 테스트 (컴포넌트 간 데이터 흐름)
+4. 반응형 레이아웃 테스트 (모바일, 태블릿, 데스크톱)
+5. 성능 테스트 (대용량 데이터 처리)

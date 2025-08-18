@@ -1,0 +1,111 @@
+# Task ID: 7
+# Title: 결과 차트 컴포넌트 구현
+# Status: pending
+# Dependencies: 1, 4, 6
+# Priority: medium
+# Description: 선택된 분석 카테고리에 따라 막대 차트를 표시하는 컴포넌트를 구현합니다.
+# Details:
+1. ResultChart.tsx 컴포넌트 생성
+2. Recharts를 사용한 막대 차트 구현
+3. 동적 데이터 바인딩
+4. 차트 레이블 및 툴팁 구현
+5. 반응형 차트 레이아웃 적용
+
+```typescript
+// src/components/ResultChart.tsx
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ChartData } from '@/lib/data-analyzer';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+
+interface ResultChartProps {
+  data: ChartData[];
+  category: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border rounded shadow-sm">
+        <p className="font-semibold">{data.name}</p>
+        <p>동의율: {data.value}%</p>
+        <p>동의: {data.count}명 / 전체: {data.total}명</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+const getCategoryTitle = (category: string): string => {
+  const titles: Record<string, string> = {
+    majorOrg: '대조직별 동의율',
+    grade: 'Grade별 동의율',
+    gradeYear: 'Grade년차별 동의율',
+    hiringType: '입사구분별 동의율',
+    position: '직책별 동의율',
+    age: '나이대별 동의율',
+    yearsOfService: '근속년수별 동의율',
+    gender: '성별별 동의율',
+    department: '구분별 동의율'
+  };
+  
+  return titles[category] || '분석 결과';
+};
+
+export default function ResultChart({ data, category }: ResultChartProps) {
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-center">
+          <p>데이터가 없습니다.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{getCategoryTitle(category)}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="w-full h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45} 
+                textAnchor="end" 
+                height={70} 
+              />
+              <YAxis 
+                label={{ value: '동의율 (%)', angle: -90, position: 'insideLeft' }} 
+                domain={[0, 100]} 
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar dataKey="value" name="동의율 (%)" fill="#4CAF50" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+# Test Strategy:
+1. 다양한 데이터셋으로 차트 렌더링 테스트
+2. 차트 레이블, 축, 범례가 올바르게 표시되는지 확인
+3. 툴팁이 올바른 정보를 표시하는지 확인
+4. 반응형 레이아웃 테스트 (다양한 화면 크기)
+5. 엣지 케이스 테스트 (데이터 없음, 단일 항목 등)
