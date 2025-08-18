@@ -22,6 +22,17 @@ export const authOptions: NextAuthOptions = {
                 console.log('Attempting to authenticate employee ID:', employeeId)
 
                 try {
+                    // Supabase 연결 테스트
+                    const { data: testConnection, error: connectionError } = await supabase
+                        .from('allowed_users')
+                        .select('count')
+                        .limit(1)
+
+                    if (connectionError) {
+                        console.error('Supabase connection error:', connectionError)
+                        throw new Error('Database connection failed')
+                    }
+
                     const { data: user, error } = await supabase
                         .from('allowed_users')
                         .select('*')
@@ -31,8 +42,12 @@ export const authOptions: NextAuthOptions = {
                     console.log('Supabase query result:', { user, error })
 
                     if (error) {
+                        if (error.code === 'PGRST116') {
+                            console.log('User not found in database for employeeId:', employeeId)
+                            return null
+                        }
                         console.error('Supabase error:', error)
-                        return null
+                        throw new Error('Database query failed')
                     }
 
                     if (!user) {
@@ -51,7 +66,7 @@ export const authOptions: NextAuthOptions = {
                     }
                 } catch (error) {
                     console.error('Auth error:', error)
-                    return null
+                    throw new Error('Authentication failed')
                 }
             }
         })

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,23 +14,59 @@ export default function LoginPage() {
     const [employeeId, setEmployeeId] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
+    const [isCheckingSession, setIsCheckingSession] = useState(true)
     const router = useRouter()
+
+    // 이미 로그인된 사용자인지 확인
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const session = await getSession()
+                if (session) {
+                    console.log('Already logged in, redirecting to home')
+                    router.push('/')
+                }
+            } catch (error) {
+                console.error('Session check error:', error)
+            } finally {
+                setIsCheckingSession(false)
+            }
+        }
+        
+        checkSession()
+    }, [router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        
+        if (!employeeId.trim()) {
+            setError('사번을 입력해주세요.')
+            return
+        }
+
         setIsLoading(true)
         setError('')
 
         try {
+            console.log('Attempting login with employee ID:', employeeId.trim())
+            
             const result = await signIn('credentials', {
                 employeeId: employeeId.trim(),
                 redirect: false
             })
 
-            if (result && 'error' in result && result.error) {
+            console.log('SignIn result:', result)
+
+            if (result?.error) {
+                console.error('Login error:', result.error)
                 setError('사번을 확인해주세요.')
+            } else if (result?.ok) {
+                console.log('Login successful, redirecting...')
+                // 강제로 새로고침하여 세션 상태 업데이트
+                window.location.href = '/'
             } else {
-                router.push('/')
+                console.error('Unexpected login result:', result)
+                setError('로그인 중 오류가 발생했습니다.')
             }
         } catch (error) {
             console.error('Login error:', error)
@@ -38,6 +74,18 @@ export default function LoginPage() {
         } finally {
             setIsLoading(false)
         }
+    }
+
+    // 세션 확인 중일 때 로딩 표시
+    if (isCheckingSession) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">로그인 상태를 확인하는 중...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -80,6 +128,7 @@ export default function LoginPage() {
                                     placeholder="사번을 입력하세요"
                                     className="pl-10 h-12 text-lg"
                                     required
+                                    disabled={isLoading}
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
