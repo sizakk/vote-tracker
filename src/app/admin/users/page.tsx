@@ -284,7 +284,7 @@ export default function AdminUsersPage() {
                                         className="pl-10"
                                     />
                                 </div>
-                                <Select value={roleFilter} onValueChange={(value: any) => setRoleFilter(value)}>
+                                <Select value={roleFilter} onValueChange={(value: 'all' | 'admin' | 'user') => setRoleFilter(value)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="역할 필터" />
                                     </SelectTrigger>
