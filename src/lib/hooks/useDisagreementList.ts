@@ -1,20 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 
 export interface DisagreedEmployee {
-    id: number
     employeeId: string
     name: string
-    organization: string
+    majorOrg: string
     grade: string
     position: string
     agreementStatus: string
+    isImplemented: boolean
 }
 
 interface DisagreementListResponse {
-    employees: DisagreedEmployee[]
+    data: DisagreedEmployee[]
     total: number
     page: number
-    pageSize: number
+    limit: number
     totalPages: number
 }
 

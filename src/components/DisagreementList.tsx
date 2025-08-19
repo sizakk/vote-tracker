@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, Users } from 'lucide-react'
 interface DisagreedEmployee {
     employeeId: string
     name: string
-    organization: string
+    majorOrg: string // organization에서 majorOrg로 변경
     grade: string
     position: string
     agreementStatus: string
@@ -141,7 +141,7 @@ export default function DisagreementList({
                                                 {employee.name}
                                             </TableCell>
                                             <TableCell className="text-xs text-gray-600">
-                                                {employee.organization}
+                                                {employee.majorOrg}
                                             </TableCell>
                                             <TableCell className="text-xs text-gray-600">
                                                 {employee.grade}

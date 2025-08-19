@@ -11,6 +11,7 @@ import { useAnalysisData } from '@/lib/hooks/useAnalysisData'
 import { useDisagreementList } from '@/lib/hooks/useDisagreementList'
 import { AnalysisCategory } from '@/lib/types'
 import RealtimeStatus from '@/components/RealtimeStatus'
+import AnalysisButtons from '@/components/AnalysisButtons'
 import {
   FadeInWrapper,
   SlideInWrapper,
@@ -122,6 +123,25 @@ export default function Home() {
             </Card>
           </FadeInWrapper>
 
+          {/* 분석 카테고리 선택 */}
+          <FadeInWrapper>
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center space-x-2">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>분석 카테고리</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AnalysisButtons
+                  onSelectAnalysis={setSelectedCategory}
+                  selectedCategory={selectedCategory}
+                  disabled={dashboardLoading}
+                />
+              </CardContent>
+            </Card>
+          </FadeInWrapper>
+
           {/* 메인 대시보드 그리드 */}
           <SlideInWrapper>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -170,9 +190,11 @@ export default function Home() {
             {selectedCategory === '전체기준' && disagreementData && (
               <div className="mt-6">
                 <LazyDisagreementListWrapper
-                  data={disagreementData.employees || []}
+                  data={disagreementData.data || []}
+                  total={disagreementData.total || 0}
+                  page={disagreementData.page || 1}
+                  totalPages={disagreementData.totalPages || 1}
                   isLoading={disagreementLoading}
-                  currentPage={currentPage}
                   onPageChange={setCurrentPage}
                 />
               </div>

@@ -1,27 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { AnalysisCategory } from '@/lib/types'
-
-interface ApiAnalysisResult {
-    category: string
-    total: number
-    percentage: number
-    breakdown?: {
-        group: string
-        count: number
-        percentage: number
-    }[]
-}
-
-export interface AnalysisResult {
-    category: string
-    total: number
-    percentage: number
-    breakdown?: {
-        group: string
-        count: number
-        percentage: number
-    }[]
-}
+import { AnalysisCategory, AnalysisResult } from '@/lib/types'
 
 async function fetchAnalysisData(category: AnalysisCategory): Promise<AnalysisResult[]> {
     const response = await fetch(`/api/analysis/${category}`, {
@@ -32,15 +10,8 @@ async function fetchAnalysisData(category: AnalysisCategory): Promise<AnalysisRe
     if (!response.ok) {
         throw new Error(`Failed to fetch analysis data for ${category}`)
     }
-    const data: ApiAnalysisResult[] = await response.json()
-
-    // API 응답을 기대하는 타입으로 변환
-    return data.map(item => ({
-        category: item.category,
-        total: item.total,
-        percentage: item.percentage,
-        breakdown: item.breakdown
-    }))
+    const data: AnalysisResult[] = await response.json()
+    return data
 }
 
 export function useAnalysisData(category: AnalysisCategory) {

@@ -186,14 +186,23 @@ const ResultChart = React.memo(function ResultChart({
                 return {
                     name: item.name,
                     미실시: item.notImplemented,
-                    미실시율: item.agreementRate
+                    미실시율: item.agreementRate,
+                    // 원본 데이터도 함께 저장
+                    notImplemented: item.notImplemented,
+                    total: item.total,
+                    agreementRate: item.agreementRate
                 };
             } else {
                 return {
                     name: item.name,
                     동의: item.agreed,
                     비동의: item.disagreed,
-                    동의율: item.agreementRate
+                    동의율: item.agreementRate,
+                    // 원본 데이터도 함께 저장
+                    agreed: item.agreed,
+                    disagreed: item.disagreed,
+                    total: item.total,
+                    agreementRate: item.agreementRate
                 };
             }
         });

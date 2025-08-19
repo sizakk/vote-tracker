@@ -5,6 +5,11 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// 서비스 롤 키를 사용하는 클라이언트 (서버 사이드에서만 사용)
+export const supabaseAdmin = process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null
+
 // Database types
 export interface Database {
     public: {

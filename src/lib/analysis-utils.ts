@@ -514,26 +514,55 @@ export async function uploadToSupabase(
     baseDate: string,
     baseTime: string
 ): Promise<{ success: boolean; error?: string; uploadBatchId?: string }> {
+    console.log('=== uploadToSupabase Function Called ===')
+    console.log('Parameters:', {
+        employeesCount: employees.length,
+        fileName,
+        baseDate,
+        baseTime
+    })
+
     try {
+        console.log('Preparing request payload...')
+        const payload = {
+            employees,
+            fileName,
+            baseDate,
+            baseTime,
+        }
+        console.log('Request payload prepared:', {
+            employeesCount: payload.employees.length,
+            fileName: payload.fileName,
+            baseDate: payload.baseDate,
+            baseTime: payload.baseTime
+        })
+
+        console.log('Making API call to /api/upload-batch...')
         const response = await fetch('/api/upload-batch', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                employees,
-                fileName,
-                baseDate,
-                baseTime,
-            }),
+            body: JSON.stringify(payload),
+        })
+
+        console.log('API response received:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok
         })
 
         if (!response.ok) {
+            console.log('API call failed with status:', response.status)
             const errorData = await response.json()
+            console.log('Error response data:', errorData)
             throw new Error(errorData.error || '업로드 중 오류가 발생했습니다.')
         }
 
+        console.log('API call successful, parsing response...')
         const result = await response.json()
+        console.log('Response data:', result)
+
         return {
             success: true,
             uploadBatchId: result.uploadBatchId,

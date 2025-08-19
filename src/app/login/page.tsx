@@ -32,13 +32,13 @@ export default function LoginPage() {
                 setIsCheckingSession(false)
             }
         }
-        
+
         checkSession()
     }, [router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        
+
         if (!employeeId.trim()) {
             setError('사번을 입력해주세요.')
             return
@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         try {
             console.log('Attempting login with employee ID:', employeeId.trim())
-            
+
             const result = await signIn('credentials', {
                 employeeId: employeeId.trim(),
                 redirect: false

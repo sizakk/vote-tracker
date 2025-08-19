@@ -14,6 +14,11 @@ export default function AdminPage() {
   const handleUploadSuccess = () => {
     // 업로드 성공 시 처리
     console.log('File uploaded successfully')
+
+    // 3초 후 자동으로 분석 페이지로 이동
+    setTimeout(() => {
+      window.location.href = '/'
+    }, 3000)
   }
 
   const handleSetupSampleData = async () => {

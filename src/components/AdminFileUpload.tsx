@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { 
-  Upload, 
-  FileSpreadsheet, 
-  Calendar, 
-  Clock, 
-  CheckCircle, 
+import {
+  Upload,
+  FileSpreadsheet,
+  Calendar,
+  Clock,
+  CheckCircle,
   XCircle,
   AlertTriangle,
   Info
@@ -34,28 +34,42 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
   const [parsedData, setParsedData] = useState<Employee[] | null>(null)
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return
+    console.log('=== File Drop Started ===')
+    console.log('Accepted files:', acceptedFiles.map(f => ({ name: f.name, size: f.size, type: f.type })))
+
+    if (acceptedFiles.length === 0) {
+      console.log('No files accepted')
+      return
+    }
 
     const file = acceptedFiles[0]
-    
+    console.log('Processing file:', { name: file.name, size: file.size, type: file.type })
+
     // 파일 확장자 검증
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+      console.log('Invalid file extension:', file.name)
       setErrorMessage('Excel 파일(.xlsx, .xls)만 업로드 가능합니다.')
       return
     }
 
     try {
+      console.log('Starting file upload process...')
       setUploadStatus('uploading')
       setUploadProgress(10)
       setErrorMessage(null)
 
       // Excel 파일 파싱
+      console.log('Parsing Excel file...')
       const employees = await parseExcelFile(file)
+      console.log('Excel parsing completed. Employee count:', employees.length)
+      console.log('First employee sample:', employees[0])
       setParsedData(employees)
       setUploadProgress(30)
 
       // 기준 날짜/시간 검증
+      console.log('Validating date/time:', { baseDate, baseTime })
       if (!baseDate || !baseTime) {
+        console.log('Date/time validation failed')
         setErrorMessage('기준 날짜와 시간을 입력해주세요.')
         setUploadStatus('error')
         return
@@ -66,24 +80,30 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
       // 파일명 생성 (yyyy-mm-dd-hhmm.xlsx 형식)
       const dateTime = new Date(`${baseDate}T${baseTime}`)
       const fileName = `${dateTime.getFullYear()}-${String(dateTime.getMonth() + 1).padStart(2, '0')}-${String(dateTime.getDate()).padStart(2, '0')}-${String(dateTime.getHours()).padStart(2, '0')}${String(dateTime.getMinutes()).padStart(2, '0')}.xlsx`
+      console.log('Generated filename:', fileName)
 
       setUploadProgress(70)
 
       // Supabase에 업로드
+      console.log('Uploading to Supabase...')
       const result = await uploadToSupabase(employees, fileName, baseDate, baseTime)
+      console.log('Upload result:', result)
 
       if (result.success) {
+        console.log('Upload successful!')
         setUploadProgress(100)
         setUploadStatus('success')
         setParsedData(null)
         setBaseDate('')
         setBaseTime('')
-        
+
         // 성공 콜백 호출
         if (onUploadSuccess) {
+          console.log('Calling onUploadSuccess callback')
           onUploadSuccess()
         }
       } else {
+        console.log('Upload failed:', result.error)
         throw new Error(result.error || '업로드 중 오류가 발생했습니다.')
       }
 
@@ -92,6 +112,7 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
       setErrorMessage(error instanceof Error ? error.message : '파일 업로드 중 오류가 발생했습니다.')
       setUploadStatus('error')
     } finally {
+      console.log('File upload process completed')
       setIsUploading(false)
     }
   }, [baseDate, baseTime, onUploadSuccess])
@@ -161,19 +182,19 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
           {...getRootProps()}
           className={`
             border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-            ${isDragActive 
-              ? 'border-blue-500 bg-blue-50' 
+            ${isDragActive
+              ? 'border-blue-500 bg-blue-50'
               : uploadStatus === 'success'
-              ? 'border-green-500 bg-green-50'
-              : uploadStatus === 'error'
-              ? 'border-red-500 bg-red-50'
-              : 'border-gray-300 hover:border-gray-400'
+                ? 'border-green-500 bg-green-50'
+                : uploadStatus === 'error'
+                  ? 'border-red-500 bg-red-50'
+                  : 'border-gray-300 hover:border-gray-400'
             }
             ${uploadStatus === 'uploading' ? 'pointer-events-none opacity-50' : ''}
           `}
         >
           <input {...getInputProps()} />
-          
+
           {uploadStatus === 'uploading' ? (
             <div className="space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -181,7 +202,7 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
                 <p className="text-lg font-medium text-gray-900">업로드 중...</p>
                 <p className="text-sm text-gray-600">파일을 처리하고 있습니다.</p>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div 
+                  <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   ></div>
@@ -195,6 +216,7 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
               <div>
                 <p className="text-lg font-medium text-green-900">업로드 완료!</p>
                 <p className="text-sm text-green-700">파일이 성공적으로 업로드되었습니다.</p>
+                <p className="text-xs text-blue-600 mt-2">3초 후 자동으로 분석 페이지로 이동합니다...</p>
               </div>
             </div>
           ) : uploadStatus === 'error' ? (
@@ -239,9 +261,17 @@ export default function AdminFileUpload({ onUploadSuccess }: AdminFileUploadProp
         {/* 액션 버튼 */}
         <div className="flex gap-3">
           {uploadStatus === 'success' && (
-            <Button onClick={handleReset} variant="outline" className="flex-1">
-              새로 업로드
-            </Button>
+            <>
+              <Button onClick={handleReset} variant="outline" className="flex-1">
+                새로 업로드
+              </Button>
+              <Button
+                onClick={() => window.location.href = '/'}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                분석 페이지로 이동
+              </Button>
+            </>
           )}
           {uploadStatus === 'error' && (
             <Button onClick={handleReset} variant="outline" className="flex-1">
